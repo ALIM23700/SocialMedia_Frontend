@@ -9,11 +9,9 @@ export const registerUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const res = await axios.post(`${API_URL}/register`, userData);
-      return res.data; 
+      return res.data;
     } catch (err) {
-      return rejectWithValue(
-        err.response?.data?.message || "Register failed"
-      );
+      return rejectWithValue(err.response?.data?.message || "Register failed");
     }
   }
 );
@@ -24,16 +22,13 @@ export const loginUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const res = await axios.post(`${API_URL}/login`, userData);
-      return res.data; 
+      return res.data;
     } catch (err) {
-      return rejectWithValue(
-        err.response?.data?.message || "Login failed"
-      );
+      return rejectWithValue(err.response?.data?.message || "Login failed");
     }
   }
 );
 
-// ================= SLICE =================
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -56,7 +51,6 @@ const authSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      // ===== REGISTER =====
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -66,10 +60,7 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.token = action.payload.token;
 
-        localStorage.setItem(
-          "user",
-          JSON.stringify(action.payload.user)
-        );
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
         localStorage.setItem("token", action.payload.token);
       })
       .addCase(registerUser.rejected, (state, action) => {
@@ -77,7 +68,6 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      // ===== LOGIN =====
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -87,10 +77,7 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.token = action.payload.token;
 
-        localStorage.setItem(
-          "user",
-          JSON.stringify(action.payload.user)
-        );
+        localStorage.setItem("user", JSON.stringify(action.payload.user));
         localStorage.setItem("token", action.payload.token);
       })
       .addCase(loginUser.rejected, (state, action) => {
