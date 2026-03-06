@@ -21,7 +21,7 @@ export const createStory = createAsyncThunk(
   "story/createStory",
   async (formData, { getState, rejectWithValue }) => {
     try {
-      const token = getState().auth.token; // ✅ FIXED HERE
+      const token = getState().auth.token;
 
       const res = await axios.post(`${API}/story/create`, formData, {
         headers: {
@@ -40,10 +40,19 @@ export const createStory = createAsyncThunk(
 // ================= VIEW STORY =================
 export const viewStory = createAsyncThunk(
   "story/viewStory",
-  async (id, { rejectWithValue }) => {
+  async (id, { getState, rejectWithValue }) => {
     try {
-      const res = await axios.put(`${API}/story/view/${id}`);
-      return { id, viewersCount: res.data.viewersCount };
+      const token = getState().auth.token;
+
+      const res = await axios.put(
+        `${API}/story/view/${id}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      return { id, viewers: res.data.viewers, viewersCount: res.data.viewersCount };
     } catch (err) {
       return rejectWithValue(err.response?.data);
     }
@@ -53,10 +62,19 @@ export const viewStory = createAsyncThunk(
 // ================= LIKE STORY =================
 export const likeStory = createAsyncThunk(
   "story/likeStory",
-  async (id, { rejectWithValue }) => {
+  async (id, { getState, rejectWithValue }) => {
     try {
-      const res = await axios.put(`${API}/story/like/${id}`);
-      return { id, likesCount: res.data.likesCount };
+      const token = getState().auth.token;
+
+      const res = await axios.put(
+        `${API}/story/like/${id}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      return { id, likes: res.data.likes, likesCount: res.data.likesCount };
     } catch (err) {
       return rejectWithValue(err.response?.data);
     }
@@ -66,9 +84,16 @@ export const likeStory = createAsyncThunk(
 // ================= COMMENT STORY =================
 export const commentStory = createAsyncThunk(
   "story/commentStory",
-  async ({ id, text }, { rejectWithValue }) => {
+  async ({ id, text }, { getState, rejectWithValue }) => {
     try {
-      const res = await axios.post(`${API}/story/comment/${id}`, { text });
+      const token = getState().auth.token;
+
+      const res = await axios.post(
+        `${API}/story/comment/${id}`,
+        { text },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
       return { id, comments: res.data.comments };
     } catch (err) {
       return rejectWithValue(err.response?.data);
@@ -102,16 +127,24 @@ const storySlice = createSlice({
         state.stories.unshift(action.payload);
       })
       .addCase(viewStory.fulfilled, (state, action) => {
-        const s = state.stories.find(i => i._id === action.payload.id);
-        if (s) s.viewers.length = action.payload.viewersCount;
+        const s = state.stories.find((i) => i._id === action.payload.id);
+        if (s) {
+          s.viewers = action.payload.viewers; // store full array
+          s.viewersCount = action.payload.viewersCount;
+        }
       })
       .addCase(likeStory.fulfilled, (state, action) => {
-        const s = state.stories.find(i => i._id === action.payload.id);
-        if (s) s.likes.length = action.payload.likesCount;
+        const s = state.stories.find((i) => i._id === action.payload.id);
+        if (s) {
+          s.likes = action.payload.likes; // store full array
+          s.likesCount = action.payload.likesCount;
+        }
       })
       .addCase(commentStory.fulfilled, (state, action) => {
-        const s = state.stories.find(i => i._id === action.payload.id);
-        if (s) s.comments = action.payload.comments;
+        const s = state.stories.find((i) => i._id === action.payload.id);
+        if (s) {
+          s.comments = action.payload.comments;
+        }
       });
   },
 });

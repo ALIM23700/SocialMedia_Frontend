@@ -7,6 +7,7 @@ import Profile from './pages/Profile';
 import Story from './pages/Story';
 import Reels from './pages/Reels';
 import Create from './pages/Create';
+import Post from './pages/Post';
 
 function App() {
   return (
@@ -59,6 +60,14 @@ function App() {
           element={
             <ProtectedRoute>
           <Create></Create>
+            </ProtectedRoute>
+          }
+        />
+          <Route
+          path="/post"
+          element={
+            <ProtectedRoute>
+          <Post></Post>
             </ProtectedRoute>
           }
         />
