@@ -8,10 +8,13 @@ import Story from './pages/Story';
 import Reels from './pages/Reels';
 import Create from './pages/Create';
 import Post from './pages/Post';
+import SideBar from './Components/SideBar';
+
 
 function App() {
   return (
     <BrowserRouter>
+    <SideBar></SideBar>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
