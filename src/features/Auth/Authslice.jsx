@@ -1,3 +1,4 @@
+// features/Auth/Authslice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -29,6 +30,62 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+// ================= FETCH PROFILE =================
+export const fetchProfile = createAsyncThunk(
+  "auth/fetchProfile",
+  async (id = null, { getState, rejectWithValue }) => {
+    try {
+      const { token } = getState().auth;
+      const url = id ? `${API_URL}/profile/${id}` : `${API_URL}/profile/me`;
+      const res = await axios.get(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.data.user;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Fetch profile failed");
+    }
+  }
+);
+
+// ================= UPDATE PROFILE =================
+export const updateProfile = createAsyncThunk(
+  "auth/updateProfile",
+  async (formData, { getState, rejectWithValue }) => {
+    try {
+      const { token } = getState().auth;
+      const res = await axios.post(`${API_URL}/updateProfile`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return res.data.user;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Profile update failed");
+    }
+  }
+);
+
+// ================= TOGGLE FOLLOW =================
+export const toggleFollow = createAsyncThunk(
+  "auth/toggleFollow",
+  async (targetUserId, { getState, rejectWithValue }) => {
+    try {
+      const { token } = getState().auth;
+      const res = await axios.post(
+        `${API_URL}/follow/${targetUserId}`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return res.data.user; // updated current user
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Follow/unfollow failed");
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -39,7 +96,6 @@ const authSlice = createSlice({
     loading: false,
     error: null,
   },
-
   reducers: {
     logout: (state) => {
       state.user = null;
@@ -48,9 +104,9 @@ const authSlice = createSlice({
       localStorage.removeItem("token");
     },
   },
-
   extraReducers: (builder) => {
     builder
+      // REGISTER
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -59,7 +115,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
-
         localStorage.setItem("user", JSON.stringify(action.payload.user));
         localStorage.setItem("token", action.payload.token);
       })
@@ -68,6 +123,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
+      // LOGIN
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -76,11 +132,55 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
-
         localStorage.setItem("user", JSON.stringify(action.payload.user));
         localStorage.setItem("token", action.payload.token);
       })
       .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // FETCH PROFILE
+      .addCase(fetchProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+        localStorage.setItem("user", JSON.stringify(action.payload));
+      })
+      .addCase(fetchProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // UPDATE PROFILE
+      .addCase(updateProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+        localStorage.setItem("user", JSON.stringify(action.payload));
+      })
+      .addCase(updateProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // TOGGLE FOLLOW
+      .addCase(toggleFollow.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(toggleFollow.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload; // update current user with new followers/following
+        localStorage.setItem("user", JSON.stringify(action.payload));
+      })
+      .addCase(toggleFollow.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

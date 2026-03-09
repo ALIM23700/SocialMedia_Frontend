@@ -1,4 +1,4 @@
-
+// pages/Login.jsx
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../features/Auth/Authslice';
@@ -15,7 +15,8 @@ const Login = () => {
     e.preventDefault();
     const result = await dispatch(loginUser({ email, password }));
     if (result.meta.requestStatus === 'fulfilled') {
-      navigate('/');
+      // Redirect to update profile after successful login
+      navigate('/update');
     }
   };
 

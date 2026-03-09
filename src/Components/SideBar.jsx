@@ -49,7 +49,7 @@ const SideBar = () => {
     >
       {/* Logo */}
       <div className="p-6 text-2xl font-bold tracking-wide">
-        Instagram
+        SocialPust
       </div>
 
       {/* Menu */}

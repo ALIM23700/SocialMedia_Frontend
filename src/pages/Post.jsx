@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPosts, likePost, commentPost } from "../features/Post/PostSlice";
+import { toggleFollow } from "../features/Auth/Authslice";
 
 const Post = () => {
   const dispatch = useDispatch();
   const { posts, loading } = useSelector((state) => state.post);
+  const { user: currentUser } = useSelector((state) => state.auth);
   const [replyText, setReplyText] = useState({});
   const [showLikes, setShowLikes] = useState({});
   const [showComments, setShowComments] = useState({});
@@ -21,7 +23,12 @@ const Post = () => {
     if (!replyText[id]?.trim()) return;
     dispatch(commentPost({ id, text: replyText[id] }));
     setReplyText({ ...replyText, [id]: "" });
-    setShowComments({ ...showComments, [id]: true }); // open comments after reply
+    setShowComments({ ...showComments, [id]: true });
+  };
+
+  const handleFollow = (userId) => {
+    console.log("Toggling follow for user:", userId);
+    dispatch(toggleFollow(userId));
   };
 
   if (loading) return <div>Loading posts...</div>;
@@ -29,34 +36,39 @@ const Post = () => {
   return (
     <div className="flex flex-col space-y-6 mt-4">
       {posts.map((p) => (
-        <div
-          key={p._id}
-          className="bg-white rounded shadow max-w-md w-full mx-auto"
-        >
+        <div key={p._id} className="bg-white rounded shadow max-w-md w-full mx-auto">
           {/* User info */}
-          <div className="flex items-center gap-3 p-3 border-b">
-            <img
-              src={p.user?.profileImage || "/default-profile.png"}
-              alt={p.user?.username}
-              className="w-10 h-10 rounded-full object-cover"
-            />
-            <span className="font-semibold">{p.user?.username || "Unknown"}</span>
+          <div className="flex items-center gap-3 p-3 border-b justify-between">
+            <div className="flex items-center gap-3">
+              <img
+                src={p.user?.profileImage || "/default-profile.png"}
+                alt={p.user?.username}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+              <span className="font-semibold">{p.user?.username || "Unknown"}</span>
+            </div>
+
+            {/* Follow/Unfollow Button */}
+            {currentUser?._id !== p.user?._id && (
+              <button
+                onClick={() => handleFollow(p.user._id)}
+                className={`px-3 py-1 rounded text-white ${
+                  currentUser?.following?.includes(p.user._id)
+                    ? "bg-gray-500"
+                    : "bg-blue-500"
+                }`}
+              >
+                {currentUser?.following?.includes(p.user._id) ? "Following" : "Follow"}
+              </button>
+            )}
           </div>
 
           {/* Media */}
           <div className="w-full max-h-[500px] overflow-hidden">
             {p.mediaType === "image" ? (
-              <img
-                src={p.mediaUrl}
-                alt="post"
-                className="w-full object-cover"
-              />
+              <img src={p.mediaUrl} alt="post" className="w-full object-cover" />
             ) : (
-              <video
-                src={p.mediaUrl}
-                controls
-                className="w-full object-cover"
-              />
+              <video src={p.mediaUrl} controls className="w-full object-cover" />
             )}
           </div>
 
@@ -70,10 +82,7 @@ const Post = () => {
 
           {/* Actions */}
           <div className="px-3 py-2 flex items-center gap-4">
-            <button
-              onClick={() => handleLike(p._id)}
-              className="font-semibold text-red-500"
-            >
+            <button onClick={() => handleLike(p._id)} className="font-semibold text-red-500">
               ❤️
             </button>
             <span
@@ -120,9 +129,7 @@ const Post = () => {
               {p.comments?.length > 0 ? (
                 p.comments.map((c, i) => (
                   <p key={i}>
-                    <span className="font-semibold">
-                      {c.user?.username || "Unknown"}:
-                    </span>{" "}
+                    <span className="font-semibold">{c.user?.username || "Unknown"}:</span>{" "}
                     {c.text}
                   </p>
                 ))

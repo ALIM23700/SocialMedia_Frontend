@@ -9,6 +9,7 @@ import Reels from './pages/Reels';
 import Create from './pages/Create';
 import Post from './pages/Post';
 import SideBar from './Components/SideBar';
+import UpdateProfile from './pages/UpdateProfile';
 
 
 function App() {
@@ -26,14 +27,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-         <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-             <Profile></Profile>
-            </ProtectedRoute>
-          }
-        />
+       <Route
+  path="/profile/:id"  
+  element={
+    <ProtectedRoute>
+      <Profile />
+    </ProtectedRoute>
+  }
+/>
         <Route
           path="/story"
           element={
@@ -71,6 +72,14 @@ function App() {
           element={
             <ProtectedRoute>
           <Post></Post>
+            </ProtectedRoute>
+          }
+        />
+         <Route
+          path="/update"
+          element={
+            <ProtectedRoute>
+         <UpdateProfile></UpdateProfile>
             </ProtectedRoute>
           }
         />
