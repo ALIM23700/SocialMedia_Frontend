@@ -9,17 +9,30 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((state) => state.auth);
+  const { loading, error,user} = useSelector((state) => state.auth);
+ 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const result = await dispatch(loginUser({ email, password }));
-    if (result.meta.requestStatus === 'fulfilled') {
-      // Redirect to update profile after successful login
-      navigate('/update');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const result = await dispatch(loginUser({ email, password }));
+
+  if (loginUser.fulfilled.match(result)) {
+    const loggedInUser = result.payload.user;
+    console.log('Logged in user:', loggedInUser);
+
+    const isProfileComplete = loggedInUser.bio && loggedInUser.profileImage;
+
+    if (!isProfileComplete) {
+      navigate('/update'); 
+    } else {
+      navigate('/'); 
     }
-  };
-
+  } else {
+    console.log(result.payload || "Login failed");
+    alert(result.payload || "Login failed");
+  }
+};
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-500 to-indigo-500 px-4">
       <div className="bg-white shadow-lg rounded-xl w-full max-w-md p-8">

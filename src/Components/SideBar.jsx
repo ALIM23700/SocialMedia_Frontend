@@ -1,3 +1,4 @@
+// pages/SideBar.jsx
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,14 +11,12 @@ import {
   FaBell,
   FaPlusSquare,
   FaUser,
-  FaSignOutAlt,
 } from "react-icons/fa";
 
 const SideBar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // user from redux
   const { user } = useSelector((state) => state.auth);
 
   const handleLogout = () => {
@@ -48,9 +47,7 @@ const SideBar = () => {
       "
     >
       {/* Logo */}
-      <div className="p-6 text-2xl font-bold tracking-wide">
-        SocialPust
-      </div>
+      <div className="p-6 text-2xl font-bold tracking-wide">SocialPust</div>
 
       {/* Menu */}
       <ul className="px-4 space-y-2">
@@ -72,7 +69,7 @@ const SideBar = () => {
           </NavLink>
         ))}
 
-        {/* Logout */}
+        {/* Logout with profile picture */}
         <button
           onClick={handleLogout}
           className="
@@ -81,7 +78,15 @@ const SideBar = () => {
             transition-all duration-200
           "
         >
-          <FaSignOutAlt className="text-xl" />
+          {user?.profileImage ? (
+            <img
+              src={user.profileImage}
+              alt={user.username}
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          ) : (
+            <FaUser className="text-xl" />
+          )}
           <span>Logout</span>
         </button>
       </ul>

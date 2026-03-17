@@ -44,7 +44,7 @@ const UpdateProfile = () => {
       if (updateProfile.fulfilled.match(resultAction)) {
         setSuccess("Profile updated successfully!");
         setTimeout(() => {
-          navigate("/profile");
+          navigate("/");
         }, 1500);
       }
     } catch (err) {

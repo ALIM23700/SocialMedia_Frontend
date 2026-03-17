@@ -86,6 +86,19 @@ export const toggleFollow = createAsyncThunk(
   }
 );
 
+// ================= GET ALL USERS =================
+export const fetchAllUsers = createAsyncThunk(
+  "auth/fetchAllUsers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await axios.get(`${API_URL}/all`);
+      return res.data.users;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Fetch all users failed");
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -95,6 +108,8 @@ const authSlice = createSlice({
     token: localStorage.getItem("token") || null,
     loading: false,
     error: null,
+    allUsers: [], 
+   
   },
   reducers: {
     logout: (state) => {
@@ -121,6 +136,7 @@ const authSlice = createSlice({
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+
       })
 
       // LOGIN
@@ -134,6 +150,7 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         localStorage.setItem("user", JSON.stringify(action.payload.user));
         localStorage.setItem("token", action.payload.token);
+        state.iscomplete=false
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -177,10 +194,24 @@ const authSlice = createSlice({
       })
       .addCase(toggleFollow.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload; // update current user with new followers/following
+        state.user = action.payload; // ✅ direct payload use
         localStorage.setItem("user", JSON.stringify(action.payload));
       })
       .addCase(toggleFollow.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // FETCH ALL USERS
+      .addCase(fetchAllUsers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllUsers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.allUsers = action.payload;
+      })
+      .addCase(fetchAllUsers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

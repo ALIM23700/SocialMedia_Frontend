@@ -1,3 +1,4 @@
+// pages/CreatePost.jsx
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createPost, fetchPosts } from "../features/Post/PostSlice";
@@ -33,7 +34,7 @@ const CreatePost = () => {
       setCaption("");
       dispatch(fetchPosts());
       alert("Post created!");
-       navigate("/");
+      navigate("/");
     } catch (err) {
       alert(err.message || "Upload failed");
     } finally {
@@ -62,8 +63,22 @@ const CreatePost = () => {
           className="w-full border p-2 rounded mb-3 resize-none"
         />
 
-        {/* File Input */}
-        <input type="file" onChange={handleFileChange} className="mb-3" />
+        {/* Instagram-style File Input */}
+        <div className="mb-3">
+          <input
+            type="file"
+            id="fileInput"
+            accept="image/*,video/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <label
+            htmlFor="fileInput"
+            className="flex items-center justify-center gap-2 w-full py-2 rounded bg-gray-200 hover:bg-gray-300 cursor-pointer text-gray-700"
+          >
+            📁 Select Image/Video
+          </label>
+        </div>
 
         {/* Preview */}
         {file && (

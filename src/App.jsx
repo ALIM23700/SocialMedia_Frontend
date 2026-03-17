@@ -10,6 +10,8 @@ import Create from './pages/Create';
 import Post from './pages/Post';
 import SideBar from './Components/SideBar';
 import UpdateProfile from './pages/UpdateProfile';
+import Explore from './pages/Explore';
+import Alluser from './pages/Alluser';
 
 
 function App() {
@@ -83,6 +85,23 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/explore"
+          element={
+            <ProtectedRoute>
+            <Explore></Explore>
+            </ProtectedRoute>
+          }
+        />
+         <Route
+          path="/alluser"
+          element={
+            <ProtectedRoute>
+           <Alluser></Alluser>
+            </ProtectedRoute>
+          }
+        />
+        
       </Routes>
     </BrowserRouter>
   );
