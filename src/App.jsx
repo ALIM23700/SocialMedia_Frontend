@@ -12,6 +12,7 @@ import SideBar from './Components/SideBar';
 import UpdateProfile from './pages/UpdateProfile';
 import Explore from './pages/Explore';
 import Alluser from './pages/Alluser';
+import Notification from './pages/Notification';
 
 
 function App() {
@@ -38,7 +39,7 @@ function App() {
   }
 />
         <Route
-          path="/story"
+          path="/story/:id"
           element={
             <ProtectedRoute>
             <Story></Story>
@@ -69,14 +70,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-          <Route
-          path="/post"
-          element={
-            <ProtectedRoute>
-          <Post></Post>
-            </ProtectedRoute>
-          }
-        />
+         <Route
+  path="/post/:id"   // <-- add :id to capture post ID
+  element={
+    <ProtectedRoute>
+      <Post />
+    </ProtectedRoute>
+  }
+/>
          <Route
           path="/update"
           element={

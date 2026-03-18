@@ -1,10 +1,13 @@
+// pages/Story.jsx
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchStories, viewStory } from "../features/story/Storyslice";
 import StoryViewer from "./StoryViewer";
+import { useParams } from "react-router-dom";
 
 const Story = () => {
   const dispatch = useDispatch();
+  const { id } = useParams(); // ✅ story ID from URL (notification)
   const { stories, loading } = useSelector((state) => state.story);
   const { user: currentUser } = useSelector((state) => state.auth);
 
@@ -14,6 +17,17 @@ const Story = () => {
   useEffect(() => {
     dispatch(fetchStories());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (id && stories.length > 0) {
+      // Find the story with this ID
+      const story = stories.find((s) => s._id === id);
+      if (story) {
+        dispatch(viewStory(story._id));
+        setActiveStory(story);
+      }
+    }
+  }, [id, stories, dispatch]);
 
   const handleView = (story) => {
     dispatch(viewStory(story._id));
@@ -27,7 +41,7 @@ const Story = () => {
 
   if (loading) return <div>Loading stories...</div>;
 
-  // ✅ FOLLOWING + OWN STORY FILTER (MAIN FIX)
+  // ✅ FOLLOWING + OWN STORY FILTER
   const followingIds = currentUser?.following?.map((f) =>
     typeof f === "object" ? f._id : f
   );
@@ -40,6 +54,7 @@ const Story = () => {
 
   return (
     <>
+      {/* Stories list */}
       <div className="flex overflow-x-auto space-x-4 p-2 bg-gray-100 rounded">
         {filteredStories.map((s) => (
           <div
@@ -68,7 +83,11 @@ const Story = () => {
 
       {/* Story Viewer */}
       {activeStory && (
-        <StoryViewer story={activeStory} onClose={handleClose} />
+        <StoryViewer
+          key={activeStory._id} // ✅ Force remount for notification open
+          story={activeStory}
+          onClose={handleClose}
+        />
       )}
     </>
   );

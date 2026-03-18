@@ -1,10 +1,13 @@
+// pages/Post.jsx
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPosts, likePost, commentPost } from "../features/Post/PostSlice";
 import { toggleFollow } from "../features/Auth/Authslice";
+import { useParams } from "react-router-dom";
 
 const Post = () => {
   const dispatch = useDispatch();
+  const { id } = useParams(); // dynamic post ID from URL
   const { posts, loading } = useSelector((state) => state.post);
   const { user: currentUser } = useSelector((state) => state.auth);
   const [replyText, setReplyText] = useState({});
@@ -15,15 +18,15 @@ const Post = () => {
     dispatch(fetchPosts());
   }, [dispatch]);
 
-  const handleLike = (id) => {
-    dispatch(likePost(id));
+  const handleLike = (postId) => {
+    dispatch(likePost(postId));
   };
 
-  const handleReply = (id) => {
-    if (!replyText[id]?.trim()) return;
-    dispatch(commentPost({ id, text: replyText[id] }));
-    setReplyText({ ...replyText, [id]: "" });
-    setShowComments({ ...showComments, [id]: true });
+  const handleReply = (postId) => {
+    if (!replyText[postId]?.trim()) return;
+    dispatch(commentPost({ id: postId, text: replyText[postId] }));
+    setReplyText({ ...replyText, [postId]: "" });
+    setShowComments({ ...showComments, [postId]: true });
   };
 
   const handleFollow = (userId) => {
@@ -32,37 +35,25 @@ const Post = () => {
 
   if (loading) return <div>Loading posts...</div>;
 
-  let feedPosts;
-
-  if (currentUser?.following?.length > 0) {
-    feedPosts = posts.filter((p) =>
-      currentUser.following.includes(p.user?._id)
-    );
-  } else {
-    feedPosts = posts;
+  // Filter posts if dynamic ID is present
+  let feedPosts = posts;
+  if (id) {
+    feedPosts = posts.filter((p) => p._id === id);
+  } else if (currentUser?.following?.length > 0) {
+    feedPosts = posts.filter((p) => currentUser.following.includes(p.user?._id));
   }
 
   return (
     <div className="flex flex-col space-y-6 mt-4">
-
-      {currentUser?.following?.length === 0 && (
+      {!id && currentUser?.following?.length === 0 && (
         <h3 className="text-center text-gray-500">Suggested for you</h3>
       )}
 
       {feedPosts.map((p) => {
-
-       
-        p.likes?.forEach((u, i) => {
-          console.log(`LIKE ${i}:`, u, "TYPE:", typeof u);
-        });
-
-        const isLiked = p.likes?.some(
-          (u) => u._id === currentUser?._id
-        );
+        const isLiked = p.likes?.some((u) => u._id === currentUser?._id);
 
         return (
           <div key={p._id} className="rounded max-w-md w-full mx-auto">
-            
             <div className="flex items-center gap-3 p-3 border-b justify-between">
               <div className="flex items-center gap-3">
                 <img
@@ -103,12 +94,9 @@ const Post = () => {
             )}
 
             <div className="px-3 py-2 flex items-center gap-4">
-              
               <button
                 onClick={() => handleLike(p._id)}
-                className={`font-semibold ${
-                  isLiked ? "text-red-600" : "text-gray-400"
-                }`}
+                className={`font-semibold ${isLiked ? "text-red-600" : "text-gray-400"}`}
               >
                 ❤️
               </button>
@@ -145,9 +133,7 @@ const Post = () => {
               <div className="px-3 py-2 border-t border-gray-200 max-h-32 overflow-y-auto">
                 <p className="font-semibold mb-1">Liked by:</p>
                 {p.likes.map((u, i) => (
-                  <p key={i}>
-                    •{p.user?.username || "Unknown"}
-                  </p>
+                  <p key={i}>•{u.username || "Unknown"}</p>
                 ))}
               </div>
             )}

@@ -1,8 +1,9 @@
 // pages/SideBar.jsx
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../features/Auth/Authslice";
+import { fetchNotifications } from "../features/Notification/NotificationSlice";
 import {
   FaHome,
   FaSearch,
@@ -18,18 +19,29 @@ const SideBar = () => {
   const navigate = useNavigate();
 
   const { user } = useSelector((state) => state.auth);
+  const { notifications } = useSelector((state) => state.notification);
+
+  const prevCountRef = useRef(0); // track previous notifications length
 
   const handleLogout = () => {
     dispatch(logout());
     navigate("/login");
   };
 
+  // Count of unread notifications
+  const unreadCount = notifications?.filter((n) => !n.isRead)?.length || 0;
+
   const menuItems = [
     { icon: <FaHome />, label: "Home", path: "/" },
     { icon: <FaSearch />, label: "Explore", path: "/explore" },
     { icon: <FaVideo />, label: "Reels", path: "/reels" },
     { icon: <FaFacebookMessenger />, label: "Messages", path: "/messages" },
-    { icon: <FaBell />, label: "Notifications", path: "/notification" },
+    {
+      icon: <FaBell />,
+      label: "Notification",
+      path: "/notification",
+      badge: unreadCount,
+    },
     { icon: <FaPlusSquare />, label: "Create", path: "/create" },
     {
       icon: <FaUser />,
@@ -37,6 +49,21 @@ const SideBar = () => {
       path: `/profile/${user?._id}`,
     },
   ];
+
+  // ================= FETCH NOTIFICATIONS WHEN NEW ARRIVE =================
+  useEffect(() => {
+    // Initial fetch
+    dispatch(fetchNotifications());
+  }, [dispatch]);
+
+  // Watch for new notifications
+  useEffect(() => {
+    if (notifications.length > prevCountRef.current) {
+      // New notification arrived, fetch updated notifications
+      dispatch(fetchNotifications());
+    }
+    prevCountRef.current = notifications.length;
+  }, [notifications, dispatch]);
 
   return (
     <div
@@ -64,7 +91,15 @@ const SideBar = () => {
               }`
             }
           >
-            <span className="text-xl">{item.icon}</span>
+            <span className="text-xl relative">
+              {item.icon}
+              {/* Badge */}
+              {item.badge > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-600 text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                  {item.badge}
+                </span>
+              )}
+            </span>
             <span className="text-base">{item.label}</span>
           </NavLink>
         ))}

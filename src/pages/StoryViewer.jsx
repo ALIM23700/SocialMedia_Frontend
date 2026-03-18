@@ -1,3 +1,4 @@
+// pages/StoryViewer.jsx
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { viewStory, likeStory, commentStory } from "../features/story/Storyslice";
@@ -26,10 +27,13 @@ const StoryViewer = ({ story, onClose }) => {
     setText("");
   };
 
-  if (!story) return null; // safety
+  if (!story) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center z-50 p-4">
+    <div
+      key={story._id} // ✅ Add key to force remount when story changes
+      className="fixed inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center z-50 p-4"
+    >
       {/* Close Button */}
       <button
         onClick={onClose}
@@ -58,7 +62,6 @@ const StoryViewer = ({ story, onClose }) => {
       <div className="w-full max-w-md mt-3 px-3 flex flex-col items-center gap-2">
         {/* Buttons Row */}
         <div className="flex gap-4 justify-center w-full">
-          {/* Like */}
           <button
             onClick={handleLike}
             className="text-white font-semibold flex items-center gap-1"
@@ -66,7 +69,6 @@ const StoryViewer = ({ story, onClose }) => {
             ❤️ {story.likes?.length || 0}
           </button>
 
-          {/* Comment */}
           <button
             onClick={() => setShowComments(!showComments)}
             className="text-white flex items-center gap-1"
@@ -74,7 +76,6 @@ const StoryViewer = ({ story, onClose }) => {
             💬 {story.comments?.length || 0}
           </button>
 
-          {/* Views */}
           <button
             onClick={() => setShowViews(!showViews)}
             className="text-white flex items-center gap-1"
@@ -84,7 +85,7 @@ const StoryViewer = ({ story, onClose }) => {
         </div>
 
         {/* Likes List */}
-        {showLikes && story.likes && story.likes.length > 0 && (
+        {showLikes && story.likes?.length > 0 && (
           <div className="text-white text-sm max-h-24 overflow-y-auto p-2 bg-gray-800 rounded mt-1 w-full">
             <p className="font-semibold">Liked by:</p>
             {story.likes.map((u) => (
@@ -94,13 +95,11 @@ const StoryViewer = ({ story, onClose }) => {
         )}
 
         {/* Comments List */}
-        {showComments && story.comments && story.comments.length > 0 && (
+        {showComments && story.comments?.length > 0 && (
           <div className="text-white text-sm max-h-24 overflow-y-auto p-2 bg-gray-800 rounded mt-1 w-full">
             {story.comments.map((c, i) => (
               <p key={i}>
-                <span className="font-semibold">
-                  {c.user?.username || "Unknown"}:
-                </span>{" "}
+                <span className="font-semibold">{c.user?.username || "Unknown"}:</span>{" "}
                 {c.text}
               </p>
             ))}
@@ -108,7 +107,7 @@ const StoryViewer = ({ story, onClose }) => {
         )}
 
         {/* Viewers List */}
-        {showViews && story.viewers && story.viewers.length > 0 && (
+        {showViews && story.viewers?.length > 0 && (
           <div className="text-white text-sm max-h-24 overflow-y-auto p-2 bg-gray-800 rounded mt-1 w-full">
             <p className="font-semibold">Viewed by:</p>
             {story.viewers.map((u) => (
