@@ -3,10 +3,11 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPosts, likePost, commentPost } from "../features/Post/PostSlice";
 import { toggleFollow } from "../features/Auth/Authslice";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 const Post = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate(); // ✅ for navigation
   const { id } = useParams(); // dynamic post ID from URL
   const { posts, loading } = useSelector((state) => state.post);
   const { user: currentUser } = useSelector((state) => state.auth);
@@ -33,6 +34,14 @@ const Post = () => {
     dispatch(toggleFollow(userId));
   };
 
+  const goToProfile = (userId) => {
+    if (userId === currentUser?._id) {
+      navigate("/profile"); // logged-in user's profile
+    } else {
+      navigate(`/visitor/${userId}`); // visitor profile page
+    }
+  };
+
   if (loading) return <div>Loading posts...</div>;
 
   // Filter posts if dynamic ID is present
@@ -54,7 +63,8 @@ const Post = () => {
 
         return (
           <div key={p._id} className="rounded max-w-md w-full mx-auto">
-            <div className="flex items-center gap-3 p-3 border-b justify-between">
+            {/* User Info Header */}
+            <div className="flex items-center gap-3 p-3 border-b justify-between cursor-pointer" onClick={() => goToProfile(p.user?._id)}>
               <div className="flex items-center gap-3">
                 <img
                   src={p.user?.profileImage || "/default-profile.png"}
@@ -66,18 +76,15 @@ const Post = () => {
 
               {currentUser?._id !== p.user?._id && (
                 <button
-                  onClick={() => handleFollow(p.user._id)}
-                  className={`px-3 py-1 rounded text-white ${
-                    currentUser?.following?.includes(p.user._id)
-                      ? "bg-blue-500"
-                      : "bg-blue-500"
-                  }`}
+                  onClick={(e) => { e.stopPropagation(); handleFollow(p.user._id); }}
+                  className={`px-3 py-1 rounded text-white bg-blue-500`}
                 >
                   {currentUser?.following?.includes(p.user._id) ? "Following" : "Follow"}
                 </button>
               )}
             </div>
 
+            {/* Post Media */}
             <div className="w-full max-h-[500px] overflow-hidden">
               {p.mediaType === "image" ? (
                 <img src={p.mediaUrl} alt="post" className="w-full object-cover" />
@@ -86,6 +93,7 @@ const Post = () => {
               )}
             </div>
 
+            {/* Caption */}
             {p.caption && (
               <div className="px-3 py-2">
                 <span className="font-semibold">{p.user?.username || "Unknown"}: </span>
@@ -93,6 +101,7 @@ const Post = () => {
               </div>
             )}
 
+            {/* Like & Comment Controls */}
             <div className="px-3 py-2 flex items-center gap-4">
               <button
                 onClick={() => handleLike(p._id)}
@@ -129,6 +138,7 @@ const Post = () => {
               </span>
             </div>
 
+            {/* Likes List */}
             {showLikes[p._id] && p.likes?.length > 0 && (
               <div className="px-3 py-2 border-t border-gray-200 max-h-32 overflow-y-auto">
                 <p className="font-semibold mb-1">Liked by:</p>
@@ -138,6 +148,7 @@ const Post = () => {
               </div>
             )}
 
+            {/* Comments */}
             {showComments[p._id] && (
               <div className="px-3 py-2 border-t border-gray-200 max-h-40 overflow-y-auto">
                 <p className="font-semibold mb-1">Comments:</p>

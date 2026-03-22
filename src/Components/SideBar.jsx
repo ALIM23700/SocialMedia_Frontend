@@ -35,7 +35,7 @@ const SideBar = () => {
     { icon: <FaHome />, label: "Home", path: "/" },
     { icon: <FaSearch />, label: "Explore", path: "/explore" },
     { icon: <FaVideo />, label: "Reels", path: "/reels" },
-    { icon: <FaFacebookMessenger />, label: "Messages", path: "/messages" },
+    { icon: <FaFacebookMessenger />, label: "Message", path: "/message" },
     {
       icon: <FaBell />,
       label: "Notification",

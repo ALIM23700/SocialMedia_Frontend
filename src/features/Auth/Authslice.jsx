@@ -1,4 +1,3 @@
-// features/Auth/Authslice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -36,11 +35,11 @@ export const fetchProfile = createAsyncThunk(
   async (id = null, { getState, rejectWithValue }) => {
     try {
       const { token } = getState().auth;
-      const url = id ? `${API_URL}/profile/${id}` : `${API_URL}/profile/me`;
+      const url = id ? `${API_URL}/users/${id}` : `${API_URL}/profile`;
       const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      return res.data.user;
+      return { user: res.data.user, userId: id }; // send userId so we know if it's logged-in or other
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Fetch profile failed");
     }
@@ -75,11 +74,9 @@ export const toggleFollow = createAsyncThunk(
       const res = await axios.post(
         `${API_URL}/follow/${targetUserId}`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      return res.data.user; // updated current user
+      return res.data.user;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Follow/unfollow failed");
     }
@@ -104,16 +101,17 @@ const authSlice = createSlice({
   initialState: {
     user: localStorage.getItem("user")
       ? JSON.parse(localStorage.getItem("user"))
-      : null,
+      : null, // logged-in user
+    viewedUser: null, // any profile being viewed
     token: localStorage.getItem("token") || null,
     loading: false,
     error: null,
-    allUsers: [], 
-   
+    allUsers: [],
   },
   reducers: {
     logout: (state) => {
       state.user = null;
+      state.viewedUser = null;
       state.token = null;
       localStorage.removeItem("user");
       localStorage.removeItem("token");
@@ -136,7 +134,6 @@ const authSlice = createSlice({
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-
       })
 
       // LOGIN
@@ -150,7 +147,6 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         localStorage.setItem("user", JSON.stringify(action.payload.user));
         localStorage.setItem("token", action.payload.token);
-        state.iscomplete=false
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
@@ -164,8 +160,13 @@ const authSlice = createSlice({
       })
       .addCase(fetchProfile.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
-        localStorage.setItem("user", JSON.stringify(action.payload));
+        if (action.payload.userId) {
+          // viewing other user
+          state.viewedUser = action.payload.user;
+        } else {
+          // logged-in user
+          state.user = action.payload.user;
+        }
       })
       .addCase(fetchProfile.rejected, (state, action) => {
         state.loading = false;
@@ -194,7 +195,7 @@ const authSlice = createSlice({
       })
       .addCase(toggleFollow.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload; // ✅ direct payload use
+        state.user = action.payload;
         localStorage.setItem("user", JSON.stringify(action.payload));
       })
       .addCase(toggleFollow.rejected, (state, action) => {
