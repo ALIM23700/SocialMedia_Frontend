@@ -1,86 +1,85 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useParams } from "react-router-dom";
-import axios from "axios";
 import { socket } from "../Components/Socket";
 
-const API_URL = "http://localhost:4000/api/v1";
+import {
+  fetchConversations,
+  fetchMessages,
+  setActiveChat,
+  incrementUnread,
+  addMessage,
+} from "../features/Message/messageSlice";
 
 const Message = () => {
+  const dispatch = useDispatch();
+
   const { user: currentUser } = useSelector((state) => state.auth);
+  const { conversations, messages, activeChat } = useSelector(
+    (state) => state.message
+  );
+
   const location = useLocation();
   const { userId: receiverIdFromRoute } = useParams();
   const receiverFromNav = location.state?.receiver;
 
-  const [conversations, setConversations] = useState([]);
-  const [activeChat, setActiveChat] = useState(
-    receiverFromNav || receiverIdFromRoute || null
-  );
-  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
-  if (!currentUser) {
+  if (!currentUser?._id)
     return <div className="text-center mt-10">Loading...</div>;
-  }
 
-  // ✅ Fetch conversations
-  const fetchConversations = async () => {
-    try {
-      const res = await axios.get(
-        `${API_URL}/message/conversations/${currentUser._id}`
-      );
-      setConversations(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  // ✅ Fetch messages
-  const fetchMessages = async (receiverId) => {
-    if (!receiverId) return;
-    try {
-      const res = await axios.get(
-        `${API_URL}/message/${currentUser._id}/${receiverId}`
-      );
-      setMessages(res.data);
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
+  // ================= INIT CHAT =================
   useEffect(() => {
-    fetchConversations();
-  }, [currentUser?._id]);
+    if (receiverFromNav) dispatch(setActiveChat(receiverFromNav));
+    else if (receiverIdFromRoute) dispatch(setActiveChat(receiverIdFromRoute));
+  }, [receiverFromNav, receiverIdFromRoute, dispatch]);
 
+  // ================= FETCH CONVERSATIONS =================
+  useEffect(() => {
+    dispatch(fetchConversations(currentUser._id));
+  }, [currentUser._id, dispatch]);
+
+  // ================= FETCH MESSAGES =================
   useEffect(() => {
     if (!activeChat) return;
 
     const receiverId =
       typeof activeChat === "object" ? activeChat._id : activeChat;
 
-    fetchMessages(receiverId);
-  }, [activeChat]);
+    if (receiverId) {
+      dispatch(fetchMessages({ senderId: currentUser._id, receiverId }));
+    }
+  }, [activeChat, dispatch, currentUser._id]);
 
-  // ✅ Socket real-time
+  // ================= SOCKET =================
   useEffect(() => {
-    socket.on("receiveMessage", (msg) => {
-      const receiverId =
-        typeof activeChat === "object" ? activeChat?._id : activeChat;
+    const handleReceive = (msg) => {
+      // Only add message if it's from another user
+      if (msg.senderId !== currentUser._id) {
+        dispatch(addMessage(msg));
 
-      if (receiverId && msg.senderId === receiverId) {
-        setMessages((prev) => [...prev, msg]);
+        const activeId =
+          typeof activeChat === "object" ? activeChat?._id : activeChat;
+
+        // Increment unread only if sender is not current chat
+        if (msg.senderId !== activeId) {
+          dispatch(incrementUnread(msg.senderId));
+        }
       }
-    });
+    };
 
-    return () => socket.off("receiveMessage");
-  }, [activeChat]);
+    socket.on("receiveMessage", handleReceive);
+    return () => socket.off("receiveMessage", handleReceive);
+  }, [activeChat, dispatch, currentUser._id]);
 
-  // ✅ Send message
-  const handleSend = async () => {
+  // ================= SEND =================
+  const handleSend = () => {
     if (!newMessage.trim() || !activeChat) return;
 
     const receiverId =
       typeof activeChat === "object" ? activeChat._id : activeChat;
+
+    if (!receiverId) return;
 
     const msg = {
       senderId: currentUser._id,
@@ -88,74 +87,73 @@ const Message = () => {
       text: newMessage,
     };
 
-    try {
-      await axios.post(`${API_URL}/message`, msg);
-      socket.emit("sendMessage", msg);
+    // Emit via socket only
+    socket.emit("sendMessage", msg);
 
-      setMessages((prev) => [...prev, msg]);
-      setNewMessage("");
+    // Add locally so sender sees instantly
+    dispatch(addMessage(msg));
 
-      fetchConversations();
-    } catch (err) {
-      console.log(err);
-    }
+    setNewMessage("");
   };
 
   return (
-    <div className="ml-64 flex justify-center bg-gray-100 min-h-screen">
-      {/* Main container */}
-      <div className="w-full max-w-5xl flex bg-white mt-6 rounded-lg shadow overflow-hidden">
+    <div className="ml-64 flex justify-center bg-gray-100 min-h-screen p-4">
+      <div className="w-full max-w-5xl flex bg-white rounded-lg shadow overflow-hidden">
 
-        {/* LEFT: Inbox */}
-        <div className="w-1/3 border-r border-gray-300 p-4 overflow-y-auto">
-          <h2 className="text-lg font-semibold mb-4">Inbox</h2>
-
-          {conversations.length > 0 ? (
-            conversations.map((conv) => (
-              <div
-                key={conv?._id}
-                className={`p-2 rounded mb-2 cursor-pointer ${
-                  (typeof activeChat === "object"
-                    ? activeChat?._id
-                    : activeChat) === conv?._id
-                    ? "bg-blue-200"
-                    : "bg-white"
-                }`}
-                onClick={() => setActiveChat(conv)}
-              >
-                <p className="font-semibold">
-                  {conv?.username || "User"}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {conv?.lastMessage?.text || "Say hi!"}
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-500">No chats yet</p>
-          )}
+        {/* LEFT */}
+        <div className="w-1/3 border-r p-4 flex flex-col">
+          <h2 className="text-xl font-bold mb-4">Inbox</h2>
+          <div className="flex-1 overflow-y-auto space-y-2">
+            {conversations.length > 0 ? (
+              conversations.map((conv) => (
+                <div
+                  key={conv?._id}
+                  className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer ${
+                    activeChat &&
+                    ((typeof activeChat === "object"
+                      ? activeChat._id
+                      : activeChat) === conv?._id
+                      ? "bg-blue-100"
+                      : "hover:bg-gray-100")
+                  }`}
+                  onClick={() => dispatch(setActiveChat(conv))}
+                >
+                  <img
+                    src={conv?.profileImage || "/default-avatar.png"}
+                    className="w-10 h-10 rounded-full"
+                  />
+                  <div className="flex-1">
+                    <p className="font-semibold">{conv?.username}</p>
+                    <p className="text-sm text-gray-500 truncate">
+                      {conv?.lastMessage?.text || "Say hi!"}
+                    </p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>No chats yet</p>
+            )}
+          </div>
         </div>
 
-        {/* RIGHT: Chat */}
+        {/* RIGHT */}
         <div className="flex-1 flex flex-col">
           {activeChat ? (
             <>
-              {/* Header */}
-              <div className="p-4 border-b border-gray-300 font-semibold">
+              <div className="p-4 border-b font-semibold">
                 {typeof activeChat === "object"
                   ? activeChat?.username
                   : "Chat"}
               </div>
 
-              {/* Messages */}
               <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-2">
                 {messages.map((m, idx) => (
                   <div
                     key={idx}
-                    className={`max-w-xs p-2 rounded ${
-                      m?.senderId === currentUser?._id
+                    className={`max-w-xs p-3 rounded-xl ${
+                      m?.senderId === currentUser._id
                         ? "bg-blue-500 text-white self-end"
-                        : "bg-gray-300 self-start"
+                        : "bg-gray-200 self-start"
                     }`}
                   >
                     {m?.text}
@@ -163,32 +161,30 @@ const Message = () => {
                 ))}
               </div>
 
-              {/* Input */}
-              <div className="p-4 flex gap-2 border-t border-gray-300">
+              <div className="p-4 flex gap-2 border-t">
                 <input
-                  type="text"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded"
+                  className="flex-1 px-4 py-2 border rounded-full"
                   placeholder="Type a message..."
                 />
                 <button
                   onClick={handleSend}
-                  className="bg-blue-500 text-white px-4 py-2 rounded"
+                  className="bg-blue-500 text-white px-6 py-2 rounded-full"
                 >
                   Send
                 </button>
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-500">
-              Select a chat to start messaging
-            </div>
+            <div className="flex-1 flex items-center justify-center">Select chat</div>
           )}
         </div>
+
       </div>
     </div>
   );
 };
 
 export default Message;
+//alim ok indicate
