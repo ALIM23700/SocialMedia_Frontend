@@ -2,25 +2,26 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchProfile, toggleFollow } from "../features/Auth/Authslice";
-import { fetchPosts } from "../features/Post/PostSlice";
+import { fetchPosts, likePost, commentPost } from "../features/Post/PostSlice";
 import { fetchReels } from "../features/reels/reelSlice";
 import { useParams, useNavigate } from "react-router-dom";
+import SideBar from "../Components/SideBar"; 
 
 const VisitorProfile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { userId } = useParams(); // visitor userId
+  const { userId } = useParams(); 
   const { viewedUser, allUsers, user: currentUser, loading: userLoading } = useSelector((state) => state.auth);
   const { posts, loading: postsLoading } = useSelector((state) => state.post);
   const { reels, loading: reelsLoading } = useSelector((state) => state.reel);
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalType, setModalType] = useState(""); // followers / following
+  const [modalType, setModalType] = useState(""); 
   const [activeTab, setActiveTab] = useState("photos");
-  const [showLikes, setShowLikes] = useState({});
-  const [showComments, setShowComments] = useState({});
+  const [replyText, setReplyText] = useState({});
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [currentCommentPost, setCurrentCommentPost] = useState(null);
 
-  // Fetch visitor profile
   useEffect(() => {
     if (userId) dispatch(fetchProfile(userId));
     dispatch(fetchPosts());
@@ -29,16 +30,16 @@ const VisitorProfile = () => {
 
   if (userLoading || postsLoading || reelsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Loading profile...</p>
+      <div className="h-screen flex items-center justify-center bg-white text-gray-500 font-medium">
+        <p className="animate-pulse">Loading profile...</p>
       </div>
     );
   }
 
   if (!viewedUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-500">User not found</p>
+      <div className="h-screen flex items-center justify-center bg-white text-red-500">
+        <p>User not found</p>
       </div>
     );
   }
@@ -57,8 +58,18 @@ const VisitorProfile = () => {
   };
 
   const handleMessageClick = () => {
-    // Navigate to Message page and pass receiver id
     navigate(`/message/${viewedUser._id}`, { state: { receiver: viewedUser } });
+  };
+
+  const handleLike = (postId) => {
+    dispatch(likePost(postId));
+  };
+
+  const handleReply = (postId) => {
+    const text = replyText[postId];
+    if (!text?.trim()) return;
+    dispatch(commentPost({ id: postId, text }));
+    setReplyText({ ...replyText, [postId]: "" });
   };
 
   const modalUsers =
@@ -66,135 +77,154 @@ const VisitorProfile = () => {
       ? allUsers.filter((u) => viewedUser.followers?.includes(u._id))
       : allUsers.filter((u) => viewedUser.following?.includes(u._id));
 
-  const renderCard = (item, type) => (
-    <div className="w-28 h-28 rounded overflow-hidden relative" key={item._id}>
-      {item.mediaType === "image" || type === "photos" ? (
-        <img
-          src={item.mediaUrl || "/default-post.png"}
-          alt={item.caption || "media"}
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <video src={item.videoUrl || item.mediaUrl} controls className="w-full h-full object-cover" />
-      )}
-
-      <div className="absolute bottom-0 left-0 w-full bg-black/30 text-white p-1 text-xs flex justify-between">
-        <span
-          className="cursor-pointer"
-          onClick={() => setShowLikes({ ...showLikes, [item._id]: !showLikes[item._id] })}
-        >
-          ❤️ {item.likes?.length || 0}
-        </span>
-        <span
-          className="cursor-pointer"
-          onClick={() => setShowComments({ ...showComments, [item._id]: !showComments[item._id] })}
-        >
-          💬 {item.comments?.length || 0}
-        </span>
+  const renderCard = (item, type) => {
+    return (
+      <div key={item._id} className="aspect-square w-full rounded overflow-hidden relative group border border-gray-100 bg-gray-50">
+        {item.mediaType === "image" || type === "photos" ? (
+          <img src={item.mediaUrl || "/default-post.png"} className="w-full h-full object-cover" alt="" />
+        ) : (
+          <video src={item.videoUrl || item.mediaUrl} className="w-full h-full object-cover" />
+        )}
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 text-white font-bold text-sm">
+          <span className="cursor-pointer" onClick={() => handleLike(item._id)}>❤️ {item.likes?.length || 0}</span>
+          <span className="cursor-pointer" onClick={() => { setCurrentCommentPost(item); setShowCommentsModal(true); }}>💬 {item.comments?.length || 0}</span>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderActiveTab = () => {
     const items = activeTab === "photos" ? userPhotos : activeTab === "posts" ? userPosts : userReels;
-    return items.length > 0 ? (
-      <div className="flex flex-wrap gap-2 justify-center mt-4">{items.map((item) => renderCard(item, activeTab))}</div>
-    ) : (
-      <p className="text-gray-500 text-center mt-4">
-        {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} not available
-      </p>
+    return (
+      <div className="w-full">
+        {items.length > 0 ? (
+          <div className="grid grid-cols-3 gap-0.5 md:gap-4 mt-4 px-0.5 md:px-0">
+            {items.map((item) => renderCard(item, activeTab))}
+          </div>
+        ) : (
+          <p className="text-gray-400 text-center mt-12 text-sm italic">No {activeTab} yet.</p>
+        )}
+      </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center pt-10 w-full">
-      {/* Profile Header */}
-      <div className="bg-white rounded-2xl shadow-md p-6 w-full max-w-md flex flex-col items-center">
-        <img
-          src={viewedUser.profileImage || "/default-profile.png"}
-          alt="Profile"
-          className="w-32 h-32 rounded-full object-cover mb-4"
-        />
-        <h1 className="text-2xl font-bold text-gray-800">{viewedUser.username}</h1>
-        {viewedUser.bio && <p className="text-gray-600 mt-2 text-center">{viewedUser.bio}</p>}
+    <div className="flex h-screen overflow-hidden bg-white">
+      <SideBar />
+      <div className="flex-1 h-full overflow-y-auto md:ml-64 scroll-smooth">
+        {/* Mobile Header */}
+        <div className="md:hidden w-full bg-black text-white px-4 py-3 flex justify-center items-center sticky top-0 z-[60] border-b border-gray-800">
+          <span className="text-xl font-bold italic text-purple-500 tracking-wider uppercase">SocialPust</span>
+        </div>
 
-        <div className="flex gap-4 mt-4">
-          {currentUser?._id !== viewedUser._id && (
-            <>
+        <div className="max-w-4xl mx-auto flex flex-col items-center">
+          {/* Profile Header */}
+          <div className="w-full px-4 pt-6 md:pt-10 flex flex-col md:flex-row items-center md:items-start md:gap-12 border-b pb-8 md:pb-12">
+            <img
+              src={viewedUser.profileImage || "/default-profile.png"}
+              className="w-24 h-24 md:w-40 md:h-40 rounded-full object-cover border-2 border-gray-100 p-1 shadow-sm"
+              alt=""
+            />
+            <div className="flex-1 mt-4 md:mt-0 text-center md:text-left">
+              <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
+                <h1 className="text-xl md:text-2xl font-light text-gray-800">{viewedUser.username}</h1>
+                <div className="flex gap-2 justify-center">
+                  <button
+                    onClick={handleFollowClick}
+                    className={`px-6 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+                      currentUser?.following?.includes(viewedUser._id) ? "bg-gray-200 text-black" : "bg-blue-500 text-white"
+                    }`}
+                  >
+                    {currentUser?.following?.includes(viewedUser._id) ? "Following" : "Follow"}
+                  </button>
+                  <button onClick={handleMessageClick} className="bg-gray-100 hover:bg-gray-200 px-6 py-1.5 rounded-lg text-sm font-semibold">
+                    Message
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-6 justify-center md:justify-start mb-4">
+                <p className="text-sm md:text-base"><span className="font-bold">{userPosts.length}</span> posts</p>
+                <div className="cursor-pointer text-sm md:text-base" onClick={() => openModal("followers")}>
+                  <span className="font-bold">{viewedUser.followers?.length || 0}</span> followers
+                </div>
+                <div className="cursor-pointer text-sm md:text-base" onClick={() => openModal("following")}>
+                  <span className="font-bold">{viewedUser.following?.length || 0}</span> following
+                </div>
+              </div>
+              <div className="max-w-xs md:max-w-md">
+                <p className="font-bold text-sm md:text-base">{viewedUser.username}</p>
+                {viewedUser.bio && <p className="text-gray-700 text-sm mt-1 whitespace-pre-wrap">{viewedUser.bio}</p>}
+              </div>
+            </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex w-full justify-center gap-10 md:gap-16 border-b md:border-none">
+            {["photos", "posts", "reels"].map((tab) => (
               <button
-                onClick={handleFollowClick}
-                className={`px-4 py-1 rounded text-white ${
-                  currentUser?.following?.includes(viewedUser._id) ? "bg-blue-500" : "bg-green-500"
+                key={tab}
+                className={`py-3 text-[10px] md:text-xs tracking-widest uppercase transition-all ${
+                  activeTab === tab ? "border-t-2 border-black text-black font-bold -mt-px" : "text-gray-400"
                 }`}
+                onClick={() => setActiveTab(tab)}
               >
-                {currentUser?.following?.includes(viewedUser._id) ? "Following" : "Follow"}
+                {tab}
               </button>
-              <button
-                onClick={handleMessageClick}
-                className="px-4 py-1 rounded bg-gray-800 text-white"
-              >
-                Message
-              </button>
-            </>
-          )}
-        </div>
-
-        <div className="flex gap-6 mt-4">
-          <div className="text-center cursor-pointer" onClick={() => openModal("followers")}>
-            <p className="font-semibold">{viewedUser.followers?.length || 0}</p>
-            <p className="text-gray-500 text-sm">Followers</p>
+            ))}
           </div>
-          <div className="text-center cursor-pointer" onClick={() => openModal("following")}>
-            <p className="font-semibold">{viewedUser.following?.length || 0}</p>
-            <p className="text-gray-500 text-sm">Following</p>
-          </div>
-        </div>
 
-        <div className="flex gap-4 mt-6 border-b w-full justify-center">
-          {["photos", "posts", "reels"].map((tab) => (
-            <button
-              key={tab}
-              className={`py-2 px-4 ${activeTab === tab ? "border-b-2 border-blue-500 font-semibold" : "text-gray-500"}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
+          <div className="w-full max-w-4xl min-h-[400px]">
+            {renderActiveTab()}
+          </div>
+          <div className="h-[120px] md:h-20 w-full" />
         </div>
       </div>
 
-      {/* Cards */}
-      <div className="w-full max-w-2xl">{renderActiveTab()}</div>
-
-      {/* Followers/Following Modal */}
+      {/* Modals (Followers & Comments) - Same as Profile.jsx style */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded max-w-sm w-full">
-            <h2 className="text-lg font-semibold mb-3">
-              {modalType === "followers" ? "Followers" : "Following"}
-            </h2>
-            <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
-              {modalUsers.length > 0 ? (
-                modalUsers.map((u) => (
-                  <div key={u._id} className="flex items-center gap-3">
-                    <img
-                      src={u.profileImage || "/default-profile.png"}
-                      alt={u.username}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                    <span className="font-medium">{u.username}</span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-500">No users found</p>
-              )}
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[150] p-4" onClick={() => setModalOpen(false)}>
+          <div className="bg-white rounded-xl max-w-sm w-full overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>
+             <div className="p-4 border-b flex justify-between items-center bg-gray-50">
+               <h2 className="font-bold text-center flex-1">{modalType === "followers" ? "Followers" : "Following"}</h2>
+               <button onClick={() => setModalOpen(false)} className="text-2xl">&times;</button>
+             </div>
+             <div className="p-2 max-h-80 overflow-y-auto">
+               {modalUsers.map(u => (
+                 <div key={u._id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer" onClick={() => {navigate(`/profile/${u._id}`); setModalOpen(false);}}>
+                   <img src={u.profileImage || "/default-profile.png"} className="w-10 h-10 rounded-full object-cover" alt="" />
+                   <span className="font-semibold text-sm">{u.username}</span>
+                 </div>
+               ))}
+             </div>
+          </div>
+        </div>
+      )}
+
+      {showCommentsModal && currentCommentPost && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[200] p-2" onClick={() => setShowCommentsModal(false)}>
+          <div className="bg-white w-full max-w-md rounded-xl overflow-hidden flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
+            <div className="p-4 border-b flex justify-between items-center">
+              <h2 className="font-bold">Comments</h2>
+              <button onClick={() => setShowCommentsModal(false)} className="text-gray-400 font-bold">Close</button>
             </div>
-            <button
-              onClick={() => setModalOpen(false)}
-              className="mt-3 px-3 py-1 bg-blue-500 text-white rounded w-full"
-            >
-              Close
-            </button>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+              {currentCommentPost.comments?.map((c, i) => (
+                <div key={i} className="flex gap-2 text-sm">
+                  <span className="font-bold text-purple-600">{c.user?.username}:</span>
+                  <span className="text-gray-800">{c.text}</span>
+                </div>
+              ))}
+            </div>
+            <div className="p-4 border-t bg-white flex gap-2">
+              <input 
+                value={replyText[currentCommentPost._id] || ""} 
+                onChange={(e) => setReplyText({ ...replyText, [currentCommentPost._id]: e.target.value })}
+                className="flex-1 border px-4 py-2 rounded-full text-sm outline-none" 
+                placeholder="Write a comment..." 
+              />
+              <button onClick={() => handleReply(currentCommentPost._id)} className="text-blue-500 font-bold">Post</button>
+            </div>
           </div>
         </div>
       )}

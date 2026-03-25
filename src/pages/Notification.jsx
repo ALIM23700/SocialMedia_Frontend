@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchNotifications, markAsRead } from "../features/Notification/NotificationSlice";
 import { useNavigate } from "react-router-dom";
-import moment from "moment"; // For time ago formatting
+import moment from "moment"; 
 
 const Notification = () => {
   const dispatch = useDispatch();
@@ -12,25 +12,19 @@ const Notification = () => {
 
   useEffect(() => {
     const fetchAndMark = async () => {
-      // Fetch notifications
       const action = await dispatch(fetchNotifications());
-
-      // After fetching, mark all unread notifications as read
       if (action.payload) {
         action.payload
           .filter((n) => !n.isRead)
           .forEach((n) => dispatch(markAsRead(n._id)));
       }
     };
-
     fetchAndMark();
   }, [dispatch]);
 
-  // Handle click on notification
   const handleClick = (n) => {
     if (n.post) {
       navigate(`/post/${n.post._id}`);
-      // Scroll to comments automatically after navigation
       setTimeout(() => {
         const commentSection = document.getElementById("comments");
         if (commentSection) commentSection.scrollIntoView({ behavior: "smooth" });
@@ -41,60 +35,62 @@ const Notification = () => {
   };
 
   return (
-    <div className="p-6 flex flex-col items-center min-h-screen bg-gray-50">
-      <h2 className="text-2xl font-bold mb-6">Notifications</h2>
+    <div className="p-4 md:p-6 flex flex-col items-center min-h-screen bg-white md:bg-gray-50">
+      {/* Header - Fixed on top for mobile if needed, but here kept simple */}
+      <div className="w-full max-w-lg flex justify-between items-center mb-6">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-800">Notifications</h2>
+        <span className="text-xs bg-gray-200 px-2 py-1 rounded-full font-medium">
+          {notifications.filter(n => !n.isRead).length} New
+        </span>
+      </div>
 
       {loading ? (
-        <p>Loading...</p>
+        <div className="flex justify-center mt-10">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+        </div>
       ) : notifications.length === 0 ? (
-        <p className="text-gray-500">No notifications yet</p>
+        <div className="text-center mt-20">
+          <p className="text-gray-400 text-sm">No notifications yet</p>
+        </div>
       ) : (
-        <ul className="space-y-4 w-full max-w-lg">
+        <ul className="space-y-3 w-full max-w-lg">
           {notifications.map((n) => (
             <li
               key={n._id}
               onClick={() => handleClick(n)}
-              className={`flex justify-between items-center p-4 rounded-lg shadow-sm cursor-pointer transition-colors
-                ${!n.isRead ? "bg-red-50 border-l-4 border-red-500" : "bg-white border border-gray-200"}`}
+              className={`flex items-start gap-3 p-3 md:p-4 rounded-xl transition-all active:scale-[0.98] cursor-pointer
+                ${!n.isRead 
+                  ? "bg-red-50/60 border-l-4 border-red-500 shadow-sm" 
+                  : "bg-white border border-gray-100 md:border-gray-200"}`}
             >
-              <div className="flex items-center gap-3">
-              
+              {/* Sender Image */}
               <img
-                  src={n.sender.profileImage || "/default-avatar.png"}
-                  alt={n.sender.username}
-                  className="w-12 h-12 rounded-full object-cover border"
-                />
-                <div>
-                  <p className="text-gray-800">
-                    <span className="font-semibold">{n.sender?.username || "Unknown"}</span>{" "}
-                    {n.type === "like" && "liked"}
-                    {n.type === "comment" && "commented on"}
-                    {n.type === "follow" && "started following"}{" "}
-                    {n.post
-                      ? "your post"
-                      : n.reel
-                      ? "your reel"
-                      : n.story
-                      ? "your story"
-                      : "your profile"}
-                  </p>
+                src={n.sender?.profileImage || "/default-avatar.png"}
+                alt="profile"
+                className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border shrink-0"
+              />
 
-                  {/* Time ago */}
-                  <p className="text-xs text-gray-500">{moment(n.createdAt).fromNow()}</p>
-                </div>
+              {/* Text Content */}
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] md:text-sm text-gray-800 leading-snug">
+                  <span className="font-bold">{n.sender?.username || "Someone"}</span>{" "}
+                  <span className="text-gray-600">
+                    {n.type === "like" && "liked your"}
+                    {n.type === "comment" && "commented on your"}
+                    {n.type === "follow" && "started following you"}
+                    {n.type !== "follow" && (n.post ? " post" : n.reel ? " reel" : n.story ? " story" : " profile")}
+                  </span>
+                </p>
+
+                {/* Time ago */}
+                <p className="text-[10px] md:text-xs text-gray-400 mt-1">
+                  {moment(n.createdAt).fromNow()}
+                </p>
               </div>
 
-              {/* Optional: Mark as read button */}
+              {/* Unread Dot (Mobile Friendly) */}
               {!n.isRead && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevent triggering handleClick
-                    dispatch(markAsRead(n._id));
-                  }}
-                  className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded transition-colors"
-                >
-                  Mark as read
-                </button>
+                <div className="w-2 h-2 bg-red-500 rounded-full mt-2 shrink-0 animate-pulse"></div>
               )}
             </li>
           ))}

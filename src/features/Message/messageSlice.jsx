@@ -46,7 +46,9 @@ const messageSlice = createSlice({
       state.activeChat = chat;
       const id = chat?._id || chat;
 
-      if (id) state.unreadCounts[id] = 0;
+      if (id) {
+        state.unreadCounts[id] = 0;
+      }
     },
 
     incrementUnread: (state, action) => {
@@ -61,7 +63,8 @@ const messageSlice = createSlice({
       // Find conversation by matching sender and receiver IDs
       let convIndex = state.conversations.findIndex(
         (c) =>
-          (c.members?.includes(msg.senderId) && c.members?.includes(msg.receiverId)) ||
+          (c.members?.includes(msg.senderId) &&
+            c.members?.includes(msg.receiverId)) ||
           c._id === msg.senderId ||
           c._id === msg.receiverId
       );
@@ -71,7 +74,9 @@ const messageSlice = createSlice({
       } else {
         // New conversation
         const newConvId =
-          msg.senderId === state.activeChat?._id ? msg.receiverId : msg.senderId;
+          msg.senderId === state.activeChat?._id
+            ? msg.receiverId
+            : msg.senderId;
         state.conversations.unshift({
           _id: newConvId,
           members: [msg.senderId, msg.receiverId],
@@ -84,7 +89,8 @@ const messageSlice = createSlice({
       // Increment unread only if sender is NOT the active chat
       const activeId = state.activeChat?._id || state.activeChat;
       if (msg.senderId !== activeId) {
-        state.unreadCounts[msg.senderId] = (state.unreadCounts[msg.senderId] || 0) + 1;
+        state.unreadCounts[msg.senderId] =
+          (state.unreadCounts[msg.senderId] || 0) + 1;
       }
     },
   },
@@ -99,7 +105,9 @@ const messageSlice = createSlice({
 
         // Reset unread count for the chat partner
         const id = action.payload.chatWithId;
-        if (id) state.unreadCounts[id] = 0;
+        if (id) {
+          state.unreadCounts[id] = 0;
+        }
       })
       .addCase(sendMessage.fulfilled, (state, action) => {
         const msg = action.payload;
@@ -107,7 +115,8 @@ const messageSlice = createSlice({
 
         let convIndex = state.conversations.findIndex(
           (c) =>
-            (c.members?.includes(msg.senderId) && c.members?.includes(msg.receiverId)) ||
+            (c.members?.includes(msg.senderId) &&
+              c.members?.includes(msg.receiverId)) ||
             c._id === msg.senderId ||
             c._id === msg.receiverId
         );
@@ -115,12 +124,10 @@ const messageSlice = createSlice({
         if (convIndex !== -1) {
           state.conversations[convIndex].lastMessage = msg;
         }
-
-       
       });
   },
 });
 
-export const { setActiveChat, incrementUnread, addMessage } = messageSlice.actions;
+export const { setActiveChat, incrementUnread, addMessage } =
+  messageSlice.actions;
 export default messageSlice.reducer;
-//alim ok indicate

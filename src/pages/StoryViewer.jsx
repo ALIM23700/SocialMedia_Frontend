@@ -10,7 +10,6 @@ const StoryViewer = ({ story, onClose }) => {
   const [showComments, setShowComments] = useState(false);
   const [showViews, setShowViews] = useState(false);
 
-  // Automatically mark story as viewed when opened
   useEffect(() => {
     if (story?._id) {
       dispatch(viewStory(story._id));
@@ -31,37 +30,39 @@ const StoryViewer = ({ story, onClose }) => {
 
   return (
     <div
-      key={story._id} // ✅ Add key to force remount when story changes
-      className="fixed inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center z-50 p-4"
+      key={story._id}
+      className="fixed inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center z-[500] p-4"
     >
       {/* Close Button */}
       <button
         onClick={onClose}
-        className="text-white absolute top-5 right-5 text-2xl font-bold"
+        className="text-white absolute top-5 right-5 text-2xl font-bold p-2 z-[510]"
       >
         ✕
       </button>
 
       {/* Story Media */}
-      {story.mediaType === "image" ? (
-        <img
-          src={story.mediaUrl}
-          alt="story"
-          className="max-h-[50vh] rounded"
-        />
-      ) : (
-        <video
-          src={story.mediaUrl}
-          autoPlay
-          controls
-          className="max-h-[50vh] rounded"
-        />
-      )}
+      <div className="flex-1 flex items-center justify-center w-full">
+        {story.mediaType === "image" ? (
+          <img
+            src={story.mediaUrl}
+            alt="story"
+            className="max-h-[60vh] md:max-h-[75vh] w-auto rounded object-contain"
+          />
+        ) : (
+          <video
+            src={story.mediaUrl}
+            autoPlay
+            controls
+            className="max-h-[60vh] md:max-h-[75vh] w-auto rounded object-contain"
+          />
+        )}
+      </div>
 
       {/* Actions Section */}
-      <div className="w-full max-w-md mt-3 px-3 flex flex-col items-center gap-2">
+      <div className="w-full max-w-md mt-3 px-3 flex flex-col items-center gap-2 mb-4">
         {/* Buttons Row */}
-        <div className="flex gap-4 justify-center w-full">
+        <div className="flex gap-6 justify-center w-full">
           <button
             onClick={handleLike}
             className="text-white font-semibold flex items-center gap-1"
@@ -70,63 +71,47 @@ const StoryViewer = ({ story, onClose }) => {
           </button>
 
           <button
-            onClick={() => setShowComments(!showComments)}
+            onClick={() => { setShowComments(!showComments); setShowViews(false); setShowLikes(false); }}
             className="text-white flex items-center gap-1"
           >
             💬 {story.comments?.length || 0}
           </button>
 
           <button
-            onClick={() => setShowViews(!showViews)}
+            onClick={() => { setShowViews(!showViews); setShowComments(false); setShowLikes(false); }}
             className="text-white flex items-center gap-1"
           >
             👁 {story.viewers?.length || 0}
           </button>
         </div>
 
-        {/* Likes List */}
-        {showLikes && story.likes?.length > 0 && (
-          <div className="text-white text-sm max-h-24 overflow-y-auto p-2 bg-gray-800 rounded mt-1 w-full">
-            <p className="font-semibold">Liked by:</p>
-            {story.likes.map((u) => (
-              <p key={u._id || u}>• {u.username || "Unknown"}</p>
-            ))}
-          </div>
-        )}
+        {/* Floating Lists (Conditional) */}
+        <div className="w-full">
+          {(showComments || showViews) && (
+            <div className="text-white text-sm max-h-32 overflow-y-auto p-2 bg-gray-800 rounded mt-1 w-full border border-gray-700">
+              {showComments && story.comments?.map((c, i) => (
+                <p key={i} className="mb-1 text-xs">
+                  <span className="font-semibold text-purple-400">{c.user?.username || "Unknown"}:</span> {c.text}
+                </p>
+              ))}
+              {showViews && story.viewers?.map((u, i) => (
+                <p key={i} className="text-xs">• {u.username || "Unknown"}</p>
+              ))}
+            </div>
+          )}
+        </div>
 
-        {/* Comments List */}
-        {showComments && story.comments?.length > 0 && (
-          <div className="text-white text-sm max-h-24 overflow-y-auto p-2 bg-gray-800 rounded mt-1 w-full">
-            {story.comments.map((c, i) => (
-              <p key={i}>
-                <span className="font-semibold">{c.user?.username || "Unknown"}:</span>{" "}
-                {c.text}
-              </p>
-            ))}
-          </div>
-        )}
-
-        {/* Viewers List */}
-        {showViews && story.viewers?.length > 0 && (
-          <div className="text-white text-sm max-h-24 overflow-y-auto p-2 bg-gray-800 rounded mt-1 w-full">
-            <p className="font-semibold">Viewed by:</p>
-            {story.viewers.map((u) => (
-              <p key={u._id || u}>• {u.username || "Unknown"}</p>
-            ))}
-          </div>
-        )}
-
-        {/* Reply Input */}
-        <div className="flex mt-2 gap-2 w-full">
+        {/* --- FIXED RESPONSIVE INPUT & BUTTON --- */}
+        <div className="flex mt-2 gap-2 w-full items-center">
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            className="flex-1 px-2 py-1 rounded text-black"
+            className="flex-1 min-w-0 px-3 py-2 rounded text-black text-sm focus:outline-none"
             placeholder="Reply..."
           />
           <button
             onClick={handleReply}
-            className="bg-green-500 text-white px-3 py-1 rounded"
+            className="flex-shrink-0 min-w-fit bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-bold text-sm transition-all active:scale-95"
           >
             Send
           </button>
