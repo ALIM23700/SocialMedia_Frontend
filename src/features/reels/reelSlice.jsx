@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API = "http://localhost:4000/api/v1";
+const API = "https://socialmedia-backend-ga74.onrender.com/api/v1";
 
-// ================= CREATE REEL =================
+
 export const createReel = createAsyncThunk(
   "reel/createReel",
   async (formData, { getState, rejectWithValue }) => {
@@ -24,7 +24,7 @@ export const createReel = createAsyncThunk(
   }
 );
 
-// ================= GET ALL REELS =================
+
 export const fetchReels = createAsyncThunk(
   "reel/fetchReels",
   async (_, { rejectWithValue }) => {
@@ -37,7 +37,6 @@ export const fetchReels = createAsyncThunk(
   }
 );
 
-// ================= LIKE REEL =================
 export const likeReel = createAsyncThunk(
   "reel/likeReel",
   async (id, { getState, rejectWithValue }) => {
@@ -55,7 +54,6 @@ export const likeReel = createAsyncThunk(
   }
 );
 
-// ================= COMMENT REEL =================
 export const commentReel = createAsyncThunk(
   "reel/commentReel",
   async ({ id, text }, { getState, rejectWithValue }) => {
@@ -77,7 +75,7 @@ export const commentReel = createAsyncThunk(
   }
 );
 
-// ================= VIEW REEL =================
+
 export const viewReel = createAsyncThunk(
   "reel/viewReel",
   async (id, { getState, rejectWithValue }) => {
@@ -95,7 +93,6 @@ export const viewReel = createAsyncThunk(
   }
 );
 
-// ================= SLICE =================
 const reelSlice = createSlice({
   name: "reel",
   initialState: {

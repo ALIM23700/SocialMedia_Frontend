@@ -54,7 +54,7 @@ const Reels = () => {
       className="h-[100dvh] w-full overflow-y-scroll snap-y snap-mandatory bg-black md:bg-gray-100"
       style={{ scrollBehavior: "smooth" }}
     >
-      {/* CREATE BUTTON */}
+
       <button
         onClick={() => setOpen(true)}
         className="fixed z-50 md:left-80 md:top-3 right-4 top-3 bg-white text-black text-2xl w-10 h-10 md:w-12 md:h-12 rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform"
@@ -90,9 +90,8 @@ const Reels = () => {
               )}
             </div>
 
-            {/* 3. Footer Section (Actions) */}
             <div className="shrink-0 bg-white flex flex-col border-t">
-              <div className="px-4 py-3 pb-6 md:pb-4"> {/* Added extra bottom padding for mobile safety */}
+              <div className="px-4 py-3 pb-6 md:pb-4"> 
                 {reel.caption && <p className="text-xs md:text-sm text-gray-700 font-medium line-clamp-1 mb-2">{reel.caption}</p>}
                 
                 <div className="flex items-center gap-8">
@@ -117,7 +116,7 @@ const Reels = () => {
         </div>
       ))}
 
-      {/* COMMENT MODAL */}
+  
       {selectedReel && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4">
           <div className="bg-white w-full max-w-sm rounded-2xl h-[450px] flex flex-col shadow-2xl overflow-hidden">
@@ -148,7 +147,7 @@ const Reels = () => {
         </div>
       )}
 
-      {/* CREATE MODAL */}
+     
       {open && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[110] p-4">
           <div className="bg-white p-6 rounded-2xl flex flex-col gap-3 w-full max-w-sm">

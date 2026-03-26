@@ -1,9 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API = "http://localhost:4000/api/v1";
+const API = "https://socialmedia-backend-ga74.onrender.com/api/v1";
 
-// ================= CREATE POST =================
+
 export const createPost = createAsyncThunk(
   "post/createPost",
   async (formData, { getState, rejectWithValue }) => {
@@ -22,7 +22,7 @@ export const createPost = createAsyncThunk(
   }
 );
 
-// ================= FETCH ALL POSTS =================
+
 export const fetchPosts = createAsyncThunk(
   "post/fetchPosts",
   async (_, { getState, rejectWithValue }) => {
@@ -38,7 +38,7 @@ export const fetchPosts = createAsyncThunk(
   }
 );
 
-// ================= LIKE/UNLIKE POST =================
+
 export const likePost = createAsyncThunk(
   "post/likePost",
   async (id, { getState, rejectWithValue }) => {
@@ -54,7 +54,7 @@ export const likePost = createAsyncThunk(
   }
 );
 
-// ================= COMMENT POST =================
+
 export const commentPost = createAsyncThunk(
   "post/commentPost",
   async ({ id, text }, { getState, rejectWithValue }) => {
@@ -70,7 +70,7 @@ export const commentPost = createAsyncThunk(
   }
 );
 
-// ================= SLICE =================
+
 const postSlice = createSlice({
   name: "post",
   initialState: {
@@ -100,7 +100,7 @@ const postSlice = createSlice({
       // like post
       .addCase(likePost.fulfilled, (state, action) => {
         const post = state.posts.find(p => p._id === action.payload.id);
-        if (post) post.likes = new Array(action.payload.likesCount).fill(0); // simple count, can adjust if you store user objects
+        if (post) post.likes = new Array(action.payload.likesCount).fill(0); 
       })
 
       // comment post

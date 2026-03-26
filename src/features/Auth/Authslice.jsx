@@ -1,9 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_URL = "http://localhost:4000/api/v1";
+const API_URL = "https://socialmedia-backend-ga74.onrender.com/api/v1";
 
-// ================= REGISTER =================
 export const registerUser = createAsyncThunk(
   "auth/register",
   async (userData, { rejectWithValue }) => {
@@ -16,7 +15,7 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-// ================= LOGIN =================
+
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (userData, { rejectWithValue }) => {
@@ -29,7 +28,6 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// ================= FETCH PROFILE =================
 export const fetchProfile = createAsyncThunk(
   "auth/fetchProfile",
   async (id = null, { getState, rejectWithValue }) => {
@@ -39,14 +37,14 @@ export const fetchProfile = createAsyncThunk(
       const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      return { user: res.data.user, userId: id }; // send userId so we know if it's logged-in or other
+      return { user: res.data.user, userId: id }; 
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Fetch profile failed");
     }
   }
 );
 
-// ================= UPDATE PROFILE =================
+
 export const updateProfile = createAsyncThunk(
   "auth/updateProfile",
   async (formData, { getState, rejectWithValue }) => {
@@ -65,7 +63,6 @@ export const updateProfile = createAsyncThunk(
   }
 );
 
-// ================= TOGGLE FOLLOW =================
 export const toggleFollow = createAsyncThunk(
   "auth/toggleFollow",
   async (targetUserId, { getState, rejectWithValue }) => {
@@ -83,7 +80,6 @@ export const toggleFollow = createAsyncThunk(
   }
 );
 
-// ================= GET ALL USERS =================
 export const fetchAllUsers = createAsyncThunk(
   "auth/fetchAllUsers",
   async (_, { rejectWithValue }) => {
@@ -101,8 +97,8 @@ const authSlice = createSlice({
   initialState: {
     user: localStorage.getItem("user")
       ? JSON.parse(localStorage.getItem("user"))
-      : null, // logged-in user
-    viewedUser: null, // any profile being viewed
+      : null, 
+    viewedUser: null, 
     token: localStorage.getItem("token") || null,
     loading: false,
     error: null,

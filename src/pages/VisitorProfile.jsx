@@ -1,4 +1,4 @@
-// pages/VisitorProfile.jsx
+
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchProfile, toggleFollow } from "../features/Auth/Authslice";
@@ -112,13 +112,13 @@ const VisitorProfile = () => {
     <div className="flex h-screen overflow-hidden bg-white">
       <SideBar />
       <div className="flex-1 h-full overflow-y-auto md:ml-64 scroll-smooth">
-        {/* Mobile Header */}
+       
         <div className="md:hidden w-full bg-black text-white px-4 py-3 flex justify-center items-center sticky top-0 z-[60] border-b border-gray-800">
           <span className="text-xl font-bold italic text-purple-500 tracking-wider uppercase">SocialPust</span>
         </div>
 
         <div className="max-w-4xl mx-auto flex flex-col items-center">
-          {/* Profile Header */}
+        
           <div className="w-full px-4 pt-6 md:pt-10 flex flex-col md:flex-row items-center md:items-start md:gap-12 border-b pb-8 md:pb-12">
             <img
               src={viewedUser.profileImage || "/default-profile.png"}
@@ -159,7 +159,7 @@ const VisitorProfile = () => {
             </div>
           </div>
 
-          {/* Tabs */}
+      
           <div className="flex w-full justify-center gap-10 md:gap-16 border-b md:border-none">
             {["photos", "posts", "reels"].map((tab) => (
               <button
@@ -180,8 +180,6 @@ const VisitorProfile = () => {
           <div className="h-[120px] md:h-20 w-full" />
         </div>
       </div>
-
-      {/* Modals (Followers & Comments) - Same as Profile.jsx style */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[150] p-4" onClick={() => setModalOpen(false)}>
           <div className="bg-white rounded-xl max-w-sm w-full overflow-hidden shadow-xl" onClick={e => e.stopPropagation()}>

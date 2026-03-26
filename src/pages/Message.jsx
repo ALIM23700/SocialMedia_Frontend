@@ -1,179 +1,170 @@
-// pages/Message.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation, useParams } from "react-router-dom";
 import { socket } from "../Components/Socket";
-
 import {
   fetchConversations,
   fetchMessages,
   setActiveChat,
-  incrementUnread,
   addMessage,
+  clearActiveChat,
+  sendMessage
 } from "../features/Message/messageSlice";
 
 const Message = () => {
   const dispatch = useDispatch();
-
+  const scrollRef = useRef();
   const { user: currentUser } = useSelector((state) => state.auth);
-  const { conversations, messages, activeChat } = useSelector(
-    (state) => state.message
-  );
-
+  const { conversations, messages, activeChat, unreadCounts } = useSelector((state) => state.message);
   const location = useLocation();
   const { userId: receiverIdFromRoute } = useParams();
   const receiverFromNav = location.state?.receiver;
-
   const [newMessage, setNewMessage] = useState("");
 
-  if (!currentUser?._id)
-    return <div className="text-center mt-10 font-medium text-gray-500">Loading...</div>;
+  const activeChatDetails = conversations.find(c => c._id === activeChat);
 
-  // ================= INIT CHAT =================
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages]);
+
+  useEffect(() => {
+    if (currentUser?._id) {
+      dispatch(fetchConversations(currentUser._id));
+      const savedChatId = localStorage.getItem("activeChat");
+      if (savedChatId && !activeChat) dispatch(setActiveChat(savedChatId));
+    }
+  }, [dispatch, currentUser?._id]);
+
   useEffect(() => {
     if (receiverFromNav) dispatch(setActiveChat(receiverFromNav));
     else if (receiverIdFromRoute) dispatch(setActiveChat(receiverIdFromRoute));
   }, [receiverFromNav, receiverIdFromRoute, dispatch]);
 
-  // ================= FETCH CONVERSATIONS =================
   useEffect(() => {
-    dispatch(fetchConversations(currentUser._id));
-  }, [currentUser._id, dispatch]);
-
-  // ================= FETCH MESSAGES =================
-  useEffect(() => {
-    if (!activeChat) return;
-
-    const receiverId =
-      typeof activeChat === "object" ? activeChat._id : activeChat;
-
-    if (receiverId) {
-      dispatch(fetchMessages({ senderId: currentUser._id, receiverId }));
+    if (activeChat) {
+      dispatch(fetchMessages({ senderId: currentUser._id, receiverId: activeChat }));
     }
-  }, [activeChat, dispatch, currentUser._id]);
+  }, [activeChat, dispatch, currentUser?._id]);
 
-  // ================= SOCKET =================
   useEffect(() => {
     const handleReceive = (msg) => {
+      // মেসেজ রিসিভ করলে অ্যাড করা (ব্যাজ লজিক স্লাইসের ভেতরেই আছে)
       if (msg.senderId !== currentUser._id) {
         dispatch(addMessage(msg));
-        const activeId =
-          typeof activeChat === "object" ? activeChat?._id : activeChat;
-        if (msg.senderId !== activeId) {
-          dispatch(incrementUnread(msg.senderId));
-        }
       }
     };
-
     socket.on("receiveMessage", handleReceive);
     return () => socket.off("receiveMessage", handleReceive);
-  }, [activeChat, dispatch, currentUser._id]);
+  }, [activeChat, dispatch, currentUser?._id]);
 
-  // ================= SEND =================
   const handleSend = () => {
-    if (!newMessage.trim() || !activeChat) return;
-    const receiverId =
-      typeof activeChat === "object" ? activeChat._id : activeChat;
-    if (!receiverId) return;
-    const msg = {
-      senderId: currentUser._id,
-      receiverId,
-      text: newMessage,
-    };
-    socket.emit("sendMessage", msg);
-    dispatch(addMessage(msg));
+    const text = newMessage.trim();
+    if (!text || !activeChat) return;
+    
     setNewMessage("");
+    const tempMsg = {
+      senderId: currentUser._id,
+      receiverId: activeChat,
+      text: text,
+      tempId: Date.now().toString(),
+      createdAt: new Date().toISOString()
+    };
+
+    dispatch(addMessage(tempMsg));
+    socket.emit("sendMessage", tempMsg);
+    dispatch(sendMessage(tempMsg));
   };
 
+  if (!currentUser?._id) return <div className="p-10 text-center">Loading...</div>;
+
   return (
-    <div className="md:ml-64 flex justify-center bg-gray-100 h-[100dvh] md:h-screen md:p-4 overflow-hidden">
-      <div className="w-full md:max-w-5xl flex bg-white md:rounded-lg shadow overflow-hidden h-full">
+    <div className="md:ml-64 flex justify-center bg-gray-50 h-[100dvh] md:h-screen md:p-4 overflow-hidden">
+      <div className="w-full md:max-w-6xl flex bg-white shadow-sm overflow-hidden h-full md:rounded-xl border border-gray-200">
         
-        {/* LEFT - INBOX */}
-        <div className={`w-full md:w-1/3 border-r p-4 flex flex-col ${activeChat ? "hidden md:flex" : "flex"}`}>
-          <h2 className="text-xl font-bold mb-4 text-gray-800">Inbox</h2>
-          <div className="flex-1 overflow-y-auto space-y-2">
-            {conversations.length > 0 ? (
-              conversations.map((conv) => (
-                <div
-                  key={conv?._id}
-                  className={`flex items-center gap-3 p-3 md:p-2 rounded-lg cursor-pointer ${
-                    (typeof activeChat === "object" ? activeChat?._id : activeChat) === conv?._id
-                      ? "bg-blue-100"
-                      : "hover:bg-gray-100"
-                  }`}
-                  onClick={() => dispatch(setActiveChat(conv))}
+        {/* Inbox Sidebar */}
+        <div className={`w-full md:w-1/3 border-r flex flex-col ${activeChat ? "hidden md:flex" : "flex"}`}>
+          <div className="p-5 border-b">
+            <h2 className="text-2xl font-bold text-gray-800">Inbox</h2>
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            {conversations.map((conv) => {
+              const uCount = unreadCounts[conv?._id] || 0;
+              const isActive = activeChat === conv?._id;
+              
+              return (
+                <div 
+                  key={conv?._id} 
+                  onClick={() => dispatch(setActiveChat(conv))} 
+                  className={`flex items-center gap-4 p-4 cursor-pointer transition-colors border-b border-gray-50 ${isActive ? "bg-gray-100" : "hover:bg-gray-50"}`}
                 >
-                  <img
-                    src={conv?.profileImage || "/default-avatar.png"}
-                    alt={conv?.username}
-                    className="w-12 h-12 md:w-10 md:h-10 rounded-full object-cover shadow-sm"
-                  />
+                  <div className="relative shrink-0">
+                    <img src={conv?.profileImage || "/default-avatar.png"} className="w-12 h-12 rounded-full object-cover border border-gray-100" alt="" />
+                    
+                    {/* লাল ব্যাজ রেন্ডারিং */}
+                    {uCount > 0 && !isActive && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] h-5 w-5 flex items-center justify-center rounded-full border-2 border-white font-bold shadow-sm">
+                        {uCount > 9 ? "9+" : uCount}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-800 truncate">{conv?.username}</p>
-                    <p className="text-sm text-gray-500 truncate">
-                      {conv?.lastMessage?.text || "Say hi!"}
+                    <div className="flex justify-between items-center mb-0.5">
+                      <p className={`truncate text-[15px] ${uCount > 0 ? "font-bold text-gray-900" : "font-semibold text-gray-700"}`}>
+                        {conv?.username}
+                      </p>
+                    </div>
+                    <p className={`text-sm truncate ${uCount > 0 ? "text-blue-600 font-bold" : "text-gray-400"}`}>
+                      {conv?.lastMessage?.text || "New message"}
                     </p>
                   </div>
                 </div>
-              ))
-            ) : (
-              <p className="text-center text-gray-400 mt-4 italic text-sm">No chats yet</p>
-            )}
+              );
+            })}
           </div>
         </div>
 
-        {/* RIGHT - CHAT AREA */}
-        <div className={`flex-1 flex flex-col h-full bg-[#f8f9fa] ${!activeChat ? "hidden md:flex" : "flex"}`}>
+        {/* Chat Main Area */}
+        <div className={`flex-1 flex flex-col h-full bg-white ${!activeChat ? "hidden md:flex" : "flex"}`}>
           {activeChat ? (
             <>
-              {/* Chat Header */}
-              <div className="p-4 border-b font-semibold flex items-center gap-3 bg-white sticky top-0 shrink-0 z-10 shadow-sm">
-                <button 
-                  onClick={() => dispatch(setActiveChat(null))}
-                  className="md:hidden text-blue-500 font-bold p-1"
-                >
+              <div className="p-4 border-b flex items-center gap-3 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+                <button onClick={() => dispatch(clearActiveChat())} className="md:hidden text-gray-600 p-1">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span>
-                    <span className="text-gray-800">
-                      {typeof activeChat === "object" ? activeChat?.username : "Chat"}
-                    </span>
+                <div className="flex items-center gap-3">
+                  <img src={activeChatDetails?.profileImage || "/default-avatar.png"} className="w-10 h-10 rounded-full object-cover" alt="" />
+                  <span className="font-bold text-gray-800">{activeChatDetails?.username || "Chat"}</span>
                 </div>
               </div>
-
-              {/* Messages Area */}
-              <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-2">
-                {messages.map((m, idx) => (
-                  <div
-                    key={idx}
-                    className={`max-w-[85%] md:max-w-xs p-3 px-4 rounded-2xl shadow-sm text-[15px] ${
-                      m?.senderId === currentUser._id
-                        ? "bg-blue-500 text-white self-end rounded-tr-none"
-                        : "bg-white border border-gray-100 self-start rounded-tl-none text-gray-800"
-                    }`}
-                  >
-                    {m?.text}
-                  </div>
-                ))}
+              
+              <div ref={scrollRef} className="flex-1 p-4 overflow-y-auto flex flex-col gap-3 bg-[#f0f2f5]">
+                {messages.map((m, idx) => {
+                  const isMe = m?.senderId === currentUser._id;
+                  return (
+                    <div 
+                      key={m._id || m.tempId || idx} 
+                      className={`max-w-[75%] p-3 px-4 rounded-2xl text-[15px] shadow-sm ${isMe ? "bg-blue-600 text-white self-end rounded-tr-none" : "bg-white text-gray-800 self-start rounded-tl-none"}`}
+                    >
+                      {m?.text || m?.message}
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Input Area: PB-20 for Mobile, SVG Send Button Added */}
-              <div className="p-3 md:p-4 bg-white border-t sticky bottom-0 shrink-0 pb-20 md:pb-4 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+              <div className="p-4 bg-white border-t pb-24 md:pb-4">
                 <div className="flex items-center gap-2 max-w-4xl mx-auto">
-                  <input
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                    className="flex-1 px-4 py-3 border border-gray-200 rounded-full outline-none focus:ring-2 focus:ring-blue-400 bg-gray-50 text-[16px]"
-                    placeholder="Message..."
+                  <input 
+                    value={newMessage} 
+                    onChange={(e) => setNewMessage(e.target.value)} 
+                    onKeyDown={(e) => e.key === "Enter" && handleSend()} 
+                    className="flex-1 px-5 py-3 border border-gray-200 rounded-full outline-none focus:border-blue-400 bg-gray-50 transition-colors" 
+                    placeholder="Type a message..." 
                   />
-                  <button
-                    onClick={handleSend}
-                    className="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 active:scale-90 transition-all shadow-md shrink-0"
+                  <button 
+                    onClick={handleSend} 
+                    className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 active:scale-90 transition-all shadow-md"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -183,9 +174,11 @@ const Message = () => {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-400 bg-gray-50">
-              <div className="text-6xl mb-4 opacity-30">💬</div>
-              <p className="font-medium">Select a chat to start messaging</p>
+            <div className="flex-1 flex flex-col items-center justify-center text-gray-300">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <p className="font-medium">Select a conversation to start messaging</p>
             </div>
           )}
         </div>

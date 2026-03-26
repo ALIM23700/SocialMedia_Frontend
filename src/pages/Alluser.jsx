@@ -1,8 +1,8 @@
-// pages/Alluser.jsx
+
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { toggleFollow } from "../features/Auth/Authslice";
-import SideBar from "../Components/SideBar"; // Sidebar add kora holo layout thik rakhte
+import SideBar from "../Components/SideBar"; 
 
 const Alluser = () => {
   const dispatch = useDispatch();
@@ -20,13 +20,12 @@ const Alluser = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar logic */}
+
       <SideBar />
 
-      {/* Main Content Area */}
+ 
       <div className="flex-1 md:ml-64 pb-20 md:pb-0">
         
-        {/* Mobile Header (SocialPust Logo) */}
         <div className="md:hidden w-full bg-black text-white px-4 py-3 flex justify-center items-center sticky top-0 z-50">
           <span className="text-xl font-bold italic text-purple-500">SocialPust</span>
         </div>

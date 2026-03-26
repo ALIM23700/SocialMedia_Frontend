@@ -1,9 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API = "http://localhost:4000/api/v1";
+const API = "https://socialmedia-backend-ga74.onrender.com/api/v1";
 
-// ================= FETCH STORIES =================
 export const fetchStories = createAsyncThunk(
   "story/fetchStories",
   async (_, { rejectWithValue }) => {
@@ -16,7 +15,7 @@ export const fetchStories = createAsyncThunk(
   }
 );
 
-// ================= CREATE STORY =================
+
 export const createStory = createAsyncThunk(
   "story/createStory",
   async (formData, { getState, rejectWithValue }) => {
@@ -37,7 +36,7 @@ export const createStory = createAsyncThunk(
   }
 );
 
-// ================= VIEW STORY =================
+
 export const viewStory = createAsyncThunk(
   "story/viewStory",
   async (id, { getState, rejectWithValue }) => {
@@ -59,7 +58,7 @@ export const viewStory = createAsyncThunk(
   }
 );
 
-// ================= LIKE STORY =================
+
 export const likeStory = createAsyncThunk(
   "story/likeStory",
   async (id, { getState, rejectWithValue }) => {
@@ -81,7 +80,7 @@ export const likeStory = createAsyncThunk(
   }
 );
 
-// ================= COMMENT STORY =================
+
 export const commentStory = createAsyncThunk(
   "story/commentStory",
   async ({ id, text }, { getState, rejectWithValue }) => {
@@ -101,7 +100,7 @@ export const commentStory = createAsyncThunk(
   }
 );
 
-// ================= SLICE =================
+
 const storySlice = createSlice({
   name: "story",
   initialState: {
@@ -129,14 +128,14 @@ const storySlice = createSlice({
       .addCase(viewStory.fulfilled, (state, action) => {
         const s = state.stories.find((i) => i._id === action.payload.id);
         if (s) {
-          s.viewers = action.payload.viewers; // store full array
+          s.viewers = action.payload.viewers; 
           s.viewersCount = action.payload.viewersCount;
         }
       })
       .addCase(likeStory.fulfilled, (state, action) => {
         const s = state.stories.find((i) => i._id === action.payload.id);
         if (s) {
-          s.likes = action.payload.likes; // store full array
+          s.likes = action.payload.likes; 
           s.likesCount = action.payload.likesCount;
         }
       })

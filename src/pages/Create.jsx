@@ -1,4 +1,4 @@
-// pages/CreatePost.jsx
+
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createPost, fetchPosts } from "../features/Post/PostSlice";
@@ -45,7 +45,7 @@ const CreatePost = () => {
   return (
     <div className="flex justify-center items-center min-h-[60vh]">
       <div className="w-full max-w-md bg-white shadow-black shadow-lg rounded-lg p-6">
-        {/* User Info */}
+  
         <div className="flex items-center gap-3 mb-4">
           <img
             src={user?.profileImage || "/default-profile.png"}
@@ -55,7 +55,6 @@ const CreatePost = () => {
           <span className="font-semibold">{user?.username || "Unknown"}</span>
         </div>
 
-        {/* Caption */}
         <textarea
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
@@ -63,7 +62,6 @@ const CreatePost = () => {
           className="w-full border p-2 rounded mb-3 resize-none"
         />
 
-        {/* Instagram-style File Input */}
         <div className="mb-3">
           <input
             type="file"
@@ -80,7 +78,7 @@ const CreatePost = () => {
           </label>
         </div>
 
-        {/* Preview */}
+  
         {file && (
           <div className="mb-3">
             {file.type.startsWith("image") ? (
@@ -99,7 +97,7 @@ const CreatePost = () => {
           </div>
         )}
 
-        {/* Post Button */}
+      
         <button
           onClick={handleUpload}
           disabled={loading}

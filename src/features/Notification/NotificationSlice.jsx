@@ -1,10 +1,10 @@
-// features/Notification/notificationSlice.js
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API = "http://localhost:4000/api/v1";
+const API = "https://socialmedia-backend-ga74.onrender.com/api/v1";
 
-// ================= FETCH NOTIFICATIONS =================
+
 export const fetchNotifications = createAsyncThunk(
   "notification/fetchNotifications",
   async (_, { getState, rejectWithValue }) => {
@@ -13,23 +13,22 @@ export const fetchNotifications = createAsyncThunk(
       const res = await axios.get(`${API}/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      return res.data.notifications; // expected: array of notifications
+      return res.data.notifications; 
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Fetch notifications failed");
     }
   }
 );
 
-// ================= MARK AS READ =================
 export const markAsRead = createAsyncThunk(
   "notification/markAsRead",
   async (id, { getState, rejectWithValue }) => {
     try {
       const token = getState().auth.token;
-      const res = await axios.put(`${API}/notifications/${id}/read`, {}, { // FIXED URL
+      const res = await axios.put(`${API}/notifications/${id}/read`, {}, { 
         headers: { Authorization: `Bearer ${token}` },
       });
-      return res.data.notification; // updated notification
+      return res.data.notification; 
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Mark as read failed");
     }

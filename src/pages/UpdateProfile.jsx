@@ -1,4 +1,4 @@
-// pages/UpdateProfile.jsx
+
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { updateProfile, fetchProfile } from "../features/Auth/Authslice";
@@ -14,7 +14,6 @@ const UpdateProfile = () => {
   const [preview, setPreview] = useState(null);
   const [success, setSuccess] = useState("");
 
-  // Fetch current profile if not loaded
   useEffect(() => {
     if (!user) {
       dispatch(fetchProfile());
@@ -67,7 +66,7 @@ const UpdateProfile = () => {
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          {/* Profile Image */}
+      
           <div className="flex flex-col items-center">
             {preview ? (
               <img
@@ -82,14 +81,14 @@ const UpdateProfile = () => {
             )}
             <input
               type="file"
-              name="profileImage"  // ✅ MUST have this for multer
+              name="profileImage"  
               accept="image/*"
               onChange={handleImageChange}
               className="text-sm"
             />
           </div>
 
-          {/* Bio */}
+       
           <textarea
             placeholder="Write a short bio..."
             value={bio}
@@ -97,7 +96,6 @@ const UpdateProfile = () => {
             className="p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
 
-          {/* Submit Button */}
           <button
             type="submit"
             className="bg-indigo-600 text-white p-4 rounded-xl font-semibold hover:bg-indigo-700 transition-colors"

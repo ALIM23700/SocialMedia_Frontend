@@ -1,4 +1,4 @@
-// pages/StoryViewer.jsx
+
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { viewStory, likeStory, commentStory } from "../features/story/Storyslice";
@@ -33,7 +33,7 @@ const StoryViewer = ({ story, onClose }) => {
       key={story._id}
       className="fixed inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center z-[500] p-4"
     >
-      {/* Close Button */}
+     
       <button
         onClick={onClose}
         className="text-white absolute top-5 right-5 text-2xl font-bold p-2 z-[510]"
@@ -41,7 +41,7 @@ const StoryViewer = ({ story, onClose }) => {
         ✕
       </button>
 
-      {/* Story Media */}
+    
       <div className="flex-1 flex items-center justify-center w-full">
         {story.mediaType === "image" ? (
           <img
@@ -59,9 +59,9 @@ const StoryViewer = ({ story, onClose }) => {
         )}
       </div>
 
-      {/* Actions Section */}
+    
       <div className="w-full max-w-md mt-3 px-3 flex flex-col items-center gap-2 mb-4">
-        {/* Buttons Row */}
+       
         <div className="flex gap-6 justify-center w-full">
           <button
             onClick={handleLike}
@@ -85,7 +85,7 @@ const StoryViewer = ({ story, onClose }) => {
           </button>
         </div>
 
-        {/* Floating Lists (Conditional) */}
+      
         <div className="w-full">
           {(showComments || showViews) && (
             <div className="text-white text-sm max-h-32 overflow-y-auto p-2 bg-gray-800 rounded mt-1 w-full border border-gray-700">
@@ -101,7 +101,7 @@ const StoryViewer = ({ story, onClose }) => {
           )}
         </div>
 
-        {/* --- FIXED RESPONSIVE INPUT & BUTTON --- */}
+        
         <div className="flex mt-2 gap-2 w-full items-center">
           <input
             value={text}

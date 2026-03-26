@@ -1,9 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-const API_URL = "http://localhost:4000/api/v1";
+const API_URL = "https://socialmedia-backend-ga74.onrender.com/api/v1";
 
-// ================= FETCH CONVERSATIONS =================
 export const fetchConversations = createAsyncThunk(
   "message/fetchConversations",
   async (userId) => {
@@ -12,7 +11,6 @@ export const fetchConversations = createAsyncThunk(
   }
 );
 
-// ================= FETCH MESSAGES =================
 export const fetchMessages = createAsyncThunk(
   "message/fetchMessages",
   async ({ senderId, receiverId }) => {
@@ -21,12 +19,11 @@ export const fetchMessages = createAsyncThunk(
   }
 );
 
-// ================= SEND MESSAGE =================
 export const sendMessage = createAsyncThunk(
   "message/sendMessage",
   async (msg) => {
     const res = await axios.post(`${API_URL}/message`, msg);
-    return res.data; // use backend returned message
+    return { ...res.data, tempId: msg.tempId }; 
   }
 );
 
@@ -36,65 +33,59 @@ const messageSlice = createSlice({
     conversations: [],
     messages: [],
     activeChat: null,
-    unreadCounts: {}, // { userId: number }
-    loading: false,
+    unreadCounts: {},
   },
-
   reducers: {
     setActiveChat: (state, action) => {
       const chat = action.payload;
-      state.activeChat = chat;
-      const id = chat?._id || chat;
-
+      const id = chat?._id || chat; 
+      state.activeChat = id; 
+      
       if (id) {
-        state.unreadCounts[id] = 0;
+        state.unreadCounts[id] = 0; // চ্যাট ওপেন করলে ব্যাজ ক্লিন
+        localStorage.setItem("activeChat", id);
       }
     },
-
     incrementUnread: (state, action) => {
       const senderId = action.payload;
       state.unreadCounts[senderId] = (state.unreadCounts[senderId] || 0) + 1;
     },
-
     addMessage: (state, action) => {
       const msg = action.payload;
-      state.messages.push(msg);
+      if (!msg) return;
 
-      // Find conversation by matching sender and receiver IDs
-      let convIndex = state.conversations.findIndex(
+      const isDuplicate = state.messages.some(m => 
+        (m._id && m._id === msg._id) || (m.tempId && m.tempId === msg.tempId)
+      );
+      
+      if (!isDuplicate) {
+        state.messages = [...state.messages, msg];
+      }
+
+      // ইনবক্স আপডেট ও ব্যাজ লজিক
+      const convIndex = state.conversations.findIndex(
         (c) =>
-          (c.members?.includes(msg.senderId) &&
-            c.members?.includes(msg.receiverId)) ||
-          c._id === msg.senderId ||
-          c._id === msg.receiverId
+          (c.members?.includes(msg.senderId) && c.members?.includes(msg.receiverId)) ||
+          c._id === msg.senderId || c._id === msg.receiverId
       );
 
       if (convIndex !== -1) {
         state.conversations[convIndex].lastMessage = msg;
-      } else {
-        // New conversation
-        const newConvId =
-          msg.senderId === state.activeChat?._id
-            ? msg.receiverId
-            : msg.senderId;
-        state.conversations.unshift({
-          _id: newConvId,
-          members: [msg.senderId, msg.receiverId],
-          username: "User", // fallback
-          profileImage: "/default-avatar.png",
-          lastMessage: msg,
-        });
+        const [conversation] = state.conversations.splice(convIndex, 1);
+        state.conversations.unshift(conversation);
       }
 
-      // Increment unread only if sender is NOT the active chat
-      const activeId = state.activeChat?._id || state.activeChat;
-      if (msg.senderId !== activeId) {
-        state.unreadCounts[msg.senderId] =
-          (state.unreadCounts[msg.senderId] || 0) + 1;
+      // ব্যাজ বাড়ানো: যদি মেসেজটা আমার না হয় এবং আমি বর্তমানে ওই চ্যাটে না থাকি
+      if (msg.senderId !== state.activeChat && msg.receiverId !== msg.senderId) {
+        state.unreadCounts[msg.senderId] = (state.unreadCounts[msg.senderId] || 0) + 1;
       }
     },
+    clearActiveChat: (state) => {
+      state.activeChat = null;
+      state.messages = [];
+      localStorage.removeItem("activeChat");
+    }
   },
-
   extraReducers: (builder) => {
     builder
       .addCase(fetchConversations.fulfilled, (state, action) => {
@@ -102,32 +93,16 @@ const messageSlice = createSlice({
       })
       .addCase(fetchMessages.fulfilled, (state, action) => {
         state.messages = action.payload.messages;
-
-        // Reset unread count for the chat partner
-        const id = action.payload.chatWithId;
-        if (id) {
-          state.unreadCounts[id] = 0;
-        }
       })
       .addCase(sendMessage.fulfilled, (state, action) => {
         const msg = action.payload;
-        state.messages.push(msg);
-
-        let convIndex = state.conversations.findIndex(
-          (c) =>
-            (c.members?.includes(msg.senderId) &&
-              c.members?.includes(msg.receiverId)) ||
-            c._id === msg.senderId ||
-            c._id === msg.receiverId
-        );
-
-        if (convIndex !== -1) {
-          state.conversations[convIndex].lastMessage = msg;
+        const index = state.messages.findIndex(m => m.tempId === msg.tempId);
+        if (index !== -1) {
+          state.messages[index] = { ...state.messages[index], ...msg }; 
         }
       });
   },
 });
 
-export const { setActiveChat, incrementUnread, addMessage } =
-  messageSlice.actions;
+export const { setActiveChat, incrementUnread, addMessage, clearActiveChat } = messageSlice.actions;
 export default messageSlice.reducer;

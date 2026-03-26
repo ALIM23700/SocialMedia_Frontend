@@ -1,4 +1,4 @@
-// pages/Notification.jsx
+
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchNotifications, markAsRead } from "../features/Notification/NotificationSlice";
@@ -36,7 +36,7 @@ const Notification = () => {
 
   return (
     <div className="p-4 md:p-6 flex flex-col items-center min-h-screen bg-white md:bg-gray-50">
-      {/* Header - Fixed on top for mobile if needed, but here kept simple */}
+ 
       <div className="w-full max-w-lg flex justify-between items-center mb-6">
         <h2 className="text-xl md:text-2xl font-bold text-gray-800">Notifications</h2>
         <span className="text-xs bg-gray-200 px-2 py-1 rounded-full font-medium">
@@ -63,14 +63,13 @@ const Notification = () => {
                   ? "bg-red-50/60 border-l-4 border-red-500 shadow-sm" 
                   : "bg-white border border-gray-100 md:border-gray-200"}`}
             >
-              {/* Sender Image */}
+        
               <img
                 src={n.sender?.profileImage || "/default-avatar.png"}
                 alt="profile"
                 className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border shrink-0"
               />
 
-              {/* Text Content */}
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] md:text-sm text-gray-800 leading-snug">
                   <span className="font-bold">{n.sender?.username || "Someone"}</span>{" "}
@@ -82,13 +81,12 @@ const Notification = () => {
                   </span>
                 </p>
 
-                {/* Time ago */}
                 <p className="text-[10px] md:text-xs text-gray-400 mt-1">
                   {moment(n.createdAt).fromNow()}
                 </p>
               </div>
 
-              {/* Unread Dot (Mobile Friendly) */}
+          
               {!n.isRead && (
                 <div className="w-2 h-2 bg-red-500 rounded-full mt-2 shrink-0 animate-pulse"></div>
               )}

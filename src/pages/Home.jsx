@@ -22,12 +22,12 @@ const Home = () => {
     dispatch(toggleFollow(userId));
   };
 
-  // ✅ Profile Navigation Logic (from Post.jsx)
+ 
   const goToProfile = (userId) => {
     if (userId === currentUser?._id) {
-      navigate("/profile"); // logged-in user's profile
+      navigate("/profile"); 
     } else {
-      navigate(`/visitor/${userId}`); // visitor profile page
+      navigate(`/visitor/${userId}`);
     }
   };
 
@@ -48,8 +48,7 @@ const Home = () => {
       <SideBar />
 
       <div className="flex-1 flex flex-col md:ml-64 pb-20 md:pb-0 overflow-x-hidden">
-        
-        {/* MOBILE LOGO HEADER */}
+      
         <div className="md:hidden w-full bg-black text-white px-4 py-3 flex justify-center items-center sticky top-0 z-50">
           <span className="text-xl font-bold italic tracking-wider text-purple-500">SocialPust</span>
         </div>
@@ -57,7 +56,7 @@ const Home = () => {
         <div className="flex flex-col lg:flex-row gap-6 p-2 md:p-6 justify-center">
           
           <div className="w-full max-w-[600px]">
-            {/* Story Row */}
+         
             <div className="relative group bg-white md:border border-gray-200 md:rounded-lg mb-4 p-4">
                <button onClick={() => scrollStories('left')} className="absolute left-1 top-1/2 z-10 bg-white/80 rounded-full p-1 shadow hidden group-hover:block border">
                  <FaChevronLeft className="text-gray-600" />
@@ -70,8 +69,6 @@ const Home = () => {
                  <FaChevronRight className="text-gray-600" />
                </button>
             </div>
-
-            {/* MOBILE ONLY: Suggested Users with Navigation & First Letter Logic */}
             <div className="md:hidden bg-white border border-gray-200 rounded-lg mb-4 p-4">
               <div className="flex justify-between items-center mb-3">
                 <h2 className="font-semibold text-sm text-gray-500">People You May Know</h2>
@@ -81,7 +78,7 @@ const Home = () => {
                 {suggestedUsers.slice(0, 8).map((u) => (
                   <div key={u._id} className="min-w-[140px] border rounded-xl p-3 flex flex-col items-center bg-gray-50">
                     
-                    {/* Clickable Image/Avatar Area */}
+                  
                     <div className="cursor-pointer" onClick={() => goToProfile(u._id)}>
                       {u.profileImage ? (
                         <img src={u.profileImage} className="w-14 h-14 rounded-full object-cover mb-2 border border-gray-200" alt=""/>
@@ -92,7 +89,7 @@ const Home = () => {
                       )}
                     </div>
 
-                    {/* Clickable Username */}
+                 
                     <span 
                       onClick={() => goToProfile(u._id)}
                       className="text-xs font-bold truncate w-full text-center cursor-pointer hover:underline"
@@ -109,7 +106,7 @@ const Home = () => {
             <Post />
           </div>
 
-          {/* DESKTOP ONLY: Right Sidebar with Navigation & First Letter Logic */}
+      
           <div className="hidden lg:block w-80 sticky top-6 h-fit bg-white p-5 rounded-xl border border-gray-200">
             <div className="flex justify-between items-center mb-4">
               <h2 className="font-semibold text-gray-500">Suggested for you</h2>
@@ -118,7 +115,7 @@ const Home = () => {
             <div className="space-y-4">
               {suggestedUsers.slice(0, 5).map((u) => (
                 <div key={u._id} className="flex items-center justify-between">
-                  {/* Clickable Area for Desktop */}
+               
                   <div className="flex items-center gap-3 cursor-pointer group" onClick={() => goToProfile(u._id)}>
                     {u.profileImage ? (
                       <img src={u.profileImage} className="w-10 h-10 rounded-full object-cover border border-gray-100" alt=""/>

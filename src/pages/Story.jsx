@@ -1,4 +1,4 @@
-// pages/Story.jsx
+
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchStories, viewStory } from "../features/story/Storyslice";
@@ -8,7 +8,7 @@ import { useParams } from "react-router-dom";
 const Story = () => {
   const dispatch = useDispatch();
   const { id } = useParams(); 
-  const { stories = [], loading } = useSelector((state) => state.story); // default empty array
+  const { stories = [], loading } = useSelector((state) => state.story); 
   const { user: currentUser } = useSelector((state) => state.auth);
 
   const [activeStory, setActiveStory] = useState(null);
@@ -17,7 +17,7 @@ const Story = () => {
     dispatch(fetchStories());
   }, [dispatch]);
 
-  // Notification theke ID ashle auto-view
+
   useEffect(() => {
     if (id && stories.length > 0) {
       const story = stories.find((s) => s._id === id);
@@ -43,25 +43,23 @@ const Story = () => {
     </div>
   );
 
-  // --- LOGIC FIX START ---
-  // 1. Amader following list theke shudhu ID gulo string akare ber kori
+  
   const followingIds = currentUser?.following?.map((f) => 
     typeof f === "object" ? f._id?.toString() : f?.toString()
   ) || [];
 
-  // 2. Filter stories: Nijer ta OR following list-e thaka user-er ta
   const filteredStories = stories.filter((s) => {
     const storyUserId = s.user?._id?.toString();
     const currentUserId = currentUser?._id?.toString();
     
     return storyUserId === currentUserId || followingIds.includes(storyUserId);
   });
-  // --- LOGIC FIX END ---
+
 
   return (
     <div className="w-full bg-white">
       <div className="flex overflow-x-auto no-scrollbar space-x-4 p-4">
-        {/* Nijer Story / Create Section First */}
+    
         {filteredStories.map((s) => (
           <div key={s._id} className="flex flex-col items-center shrink-0 cursor-pointer" onClick={() => handleView(s)}>
             <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full p-[2px] 
@@ -81,7 +79,7 @@ const Story = () => {
           </div>
         ))}
 
-        {/* Jodi list ekdom faka thake (Except common users) */}
+
         {filteredStories.length === 0 && (
           <p className="text-xs text-gray-400">No stories to show</p>
         )}

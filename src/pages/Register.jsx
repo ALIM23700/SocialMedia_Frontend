@@ -1,4 +1,4 @@
-// pages/Register.jsx
+
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { registerUser } from '../features/Auth/Authslice';
@@ -22,10 +22,10 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-0 md:px-4">
-      {/* Card: Mobile-e border-radius kom ar full width, Desktop-e max-w-md ar rounded */}
+      
       <div className="bg-white w-full max-w-md min-h-screen md:min-h-fit md:rounded-3xl shadow-none md:shadow-2xl p-6 md:p-10 flex flex-col justify-center transition-all">
         
-        {/* Logo/Brand Name for Mobile */}
+       
         <div className="text-center mb-8">
           <h2 className="text-3xl font-extrabold text-indigo-600 mb-2">SocialPust</h2>
           <h1 className="text-xl md:text-2xl font-bold text-gray-800">
@@ -41,7 +41,7 @@ const Register = () => {
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Input Group */}
+      
           <div className="space-y-4">
             <input
               type="text"

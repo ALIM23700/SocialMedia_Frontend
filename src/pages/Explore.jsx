@@ -44,12 +44,12 @@ const Explore = () => {
   );
 
   return (
-    // Mobile-e pb-20 kora hoyeche jate bottom bar-er niche content na dhuke jay
+
     <div className="flex flex-col space-y-6 mt-4 px-2 md:px-0 pb-20 md:pb-10">
       {explorePosts.map((p) => (
         <div key={p._id} className="bg-white rounded-xl shadow-sm border border-gray-100 max-w-md w-full mx-auto overflow-hidden">
           
-          {/* User Header */}
+      
           <div className="flex items-center justify-between p-3 border-b">
             <div className="flex items-center gap-3">
               <img
@@ -68,7 +68,7 @@ const Explore = () => {
             </button>
           </div>
 
-          {/* Media Section */}
+     
           <div className="w-full bg-gray-50 flex items-center justify-center overflow-hidden">
             {p.mediaType === "image" ? (
               <img src={p.mediaUrl} className="w-full h-auto max-h-[500px] object-contain" alt="post" />
@@ -77,7 +77,7 @@ const Explore = () => {
             )}
           </div>
 
-          {/* Caption */}
+      
           {p.caption && (
             <div className="px-4 py-2 text-sm">
               <span className="font-bold mr-2">{p.user?.username}</span>
@@ -85,7 +85,7 @@ const Explore = () => {
             </div>
           )}
 
-          {/* Actions Bar */}
+      
           <div className="px-4 py-3 flex items-center gap-5 border-t border-gray-50">
             <div className="flex items-center gap-1">
               <button onClick={() => handleLike(p._id)} className="text-xl active:scale-125 transition-transform">
@@ -112,7 +112,7 @@ const Explore = () => {
             </div>
           </div>
 
-          {/* Comments Section - Responsive Fix */}
+      
           {showComments[p._id] && (
             <div className="px-4 py-3 bg-gray-50 border-t space-y-2">
               <div className="max-h-32 overflow-y-auto space-y-1 custom-scrollbar">
@@ -123,7 +123,6 @@ const Explore = () => {
                 ))}
               </div>
 
-              {/* FIXED RESPONSIVE INPUT & BUTTON */}
               <div className="flex mt-3 gap-2 items-center">
                 <input
                   value={replyText[p._id] || ""}
