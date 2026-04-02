@@ -68,7 +68,7 @@ Supports user authentication, real-time chat, stories, posts, notifications, ree
 
 ---
 
-# 1. Clone the frontend repo
+1. Clone the frontend repo
 ```bash
 git clone https://github.com/ALIM23700/SocialMedia_Frontend.git
 
