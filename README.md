@@ -1,17 +1,116 @@
-# React + Vite
+# 🌐 Fullstack Social Media Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Tailwind CSS frontend for a full-stack social media application.  
+Supports user authentication, real-time chat, stories, posts, notifications, reels, explore, profile, and home feed.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🌐 Live Demo
+[Click here to view the live app](https://social-media-frontend-sigma-rosy.vercel.app/)
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### ⚙️ Backend
+[Backend Repo](https://github.com/ALIM23700/SocialMedia_Backend)
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-"# SocialMedia_Frontend" 
+## 🛠 Tech Stack
+
+- React.js  
+- Tailwind CSS & DaisyUI  
+- React Router DOM  
+- Axios for API calls  
+- Firebase Authentication & Realtime DB / Socket.IO  
+- LocalStorage for temporary state (e.g., auth, draft posts)
+
+---
+
+## ✨ Features
+
+- Fully responsive design for desktop & mobile  
+- User authentication (signup/login/logout)  
+- Real-time chat messaging  
+- Stories to share temporary posts  
+- Posts & Reels with likes, comments, and sharing  
+- Notifications for likes, comments, follows, and messages  
+- Explore & Home feed to discover content  
+- User profile management  
+
+---
+
+## 📸 Screenshots
+
+### Home Feed
+![Home1](screenshots/Home1.png)  
+![Home2](screenshots/Home2.png)
+
+### Explore & Reels
+![Explore](screenshots/Explore.png)  
+![Reels](screenshots/Reels.png)
+
+### Chat & Notifications
+![Message](screenshots/Message.png)  
+![Notification](screenshots/Notification.png)
+
+### Post & Create
+![Create Post](screenshots/CreatePost.png)  
+![Like & Comment](screenshots/Like-Comment.png)
+
+### Stories & Suggestions
+![Story](screenshots/Story.png)  
+![Suggestions](screenshots/Suggetions.png)
+
+### User Profile & Auth
+![Profile](screenshots/Profile.png)  
+![Login](screenshots/Login.png)  
+![Register](screenshots/Register.png)
+
+---
+
+# 1. Clone the frontend repo
+```bash
+git clone https://github.com/ALIM23700/SocialMedia_Frontend.git
+
+# Setup & Run
+
+2. Navigate into the project folder  
+cd SocialMedia_Frontend  
+
+3. Install dependencies  
+npm install  
+
+4. Start the app locally  
+npm start  
+
+5. Open in browser at  
+http://localhost:3000/  
+
+---
+
+# 📁 Project Structure
+
+src/  
+app/ → Redux state management and Backend Url / Firebase setup  
+components/ → Reusable UI components  
+pages/ → Home, Explore, Profile, Reels, Stories, Chat pages  
+App.js → Main router & page rendering  
+
+---
+
+# 🚀 Future Improvements
+
+- Edit profile functionality  
+- Save & share posts  
+- Story highlights  
+- Advanced search & explore filters  
+- Push notifications  
+- Post tagging & mentions  
+- Dark mode  
+- Analytics/dashboard for user engagement  
+
+---
+
+📄 License
+
+You are free to use, modify, and distribute this project.
