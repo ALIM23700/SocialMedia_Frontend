@@ -66,13 +66,8 @@ Supports user authentication, real-time chat, stories, posts, notifications, ree
 ![Login](screenshots/Login.png)  
 ![Register](screenshots/Register.png)
 
----
-
-1. Clone the frontend repo
-```bash
-git clone https://github.com/ALIM23700/SocialMedia_Frontend.git
-
-# Setup & Run
+1. Clone the frontend repo  
+git clone https://github.com/ALIM23700/SocialMedia_Frontend.git  
 
 2. Navigate into the project folder  
 cd SocialMedia_Frontend  
@@ -86,20 +81,14 @@ npm start
 5. Open in browser at  
 http://localhost:3000/  
 
----
-
-# 📁 Project Structure
-
+Project Structure:  
 src/  
 app/ → Redux state management and Backend Url / Firebase setup  
 components/ → Reusable UI components  
 pages/ → Home, Explore, Profile, Reels, Stories, Chat pages  
 App.js → Main router & page rendering  
 
----
-
-# 🚀 Future Improvements
-
+Future Improvements:  
 - Edit profile functionality  
 - Save & share posts  
 - Story highlights  
@@ -109,8 +98,7 @@ App.js → Main router & page rendering
 - Dark mode  
 - Analytics/dashboard for user engagement  
 
----
-
-📄 License
-
+License:  
 You are free to use, modify, and distribute this project.
+
+---
