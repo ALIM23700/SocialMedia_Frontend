@@ -35,6 +35,19 @@ const Message = () => {
     }
   }, [dispatch, currentUser?._id]);
 
+  // ব্যাকএন্ডকে জানানো হচ্ছে userId <-> socket.id ম্যাপিং এর জন্য,
+  // এটা ছাড়া onlineUsers ম্যাপ খালি থাকে আর receiveMessage কখনো পাঠানো হয় না
+  useEffect(() => {
+    if (!currentUser?._id) return;
+
+    const registerUser = () => socket.emit("addUser", currentUser._id);
+
+    if (socket.connected) registerUser();
+    socket.on("connect", registerUser);
+
+    return () => socket.off("connect", registerUser);
+  }, [currentUser?._id]);
+
   useEffect(() => {
     if (receiverFromNav) dispatch(setActiveChat(receiverFromNav));
     else if (receiverIdFromRoute) dispatch(setActiveChat(receiverIdFromRoute));
@@ -48,19 +61,18 @@ const Message = () => {
 
   useEffect(() => {
     const handleReceive = (msg) => {
-      // মেসেজ রিসিভ করলে অ্যাড করা (ব্যাজ লজিক স্লাইসের ভেতরেই আছে)
-      if (msg.senderId !== currentUser._id) {
+      if (msg.senderId !== currentUser?._id) {
         dispatch(addMessage(msg));
       }
     };
     socket.on("receiveMessage", handleReceive);
     return () => socket.off("receiveMessage", handleReceive);
-  }, [activeChat, dispatch, currentUser?._id]);
+  }, [dispatch, currentUser?._id]);
 
   const handleSend = () => {
     const text = newMessage.trim();
     if (!text || !activeChat) return;
-    
+
     setNewMessage("");
     const tempMsg = {
       senderId: currentUser._id,
@@ -75,12 +87,16 @@ const Message = () => {
     dispatch(sendMessage(tempMsg));
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.nativeEvent.isComposing) handleSend();
+  };
+
   if (!currentUser?._id) return <div className="p-10 text-center">Loading...</div>;
 
   return (
     <div className="md:ml-64 flex justify-center bg-gray-50 h-[100dvh] md:h-screen md:p-4 overflow-hidden">
       <div className="w-full md:max-w-6xl flex bg-white shadow-sm overflow-hidden h-full md:rounded-xl border border-gray-200">
-        
+
         {/* Inbox Sidebar */}
         <div className={`w-full md:w-1/3 border-r flex flex-col ${activeChat ? "hidden md:flex" : "flex"}`}>
           <div className="p-5 border-b">
@@ -90,17 +106,16 @@ const Message = () => {
             {conversations.map((conv) => {
               const uCount = unreadCounts[conv?._id] || 0;
               const isActive = activeChat === conv?._id;
-              
+
               return (
-                <div 
-                  key={conv?._id} 
-                  onClick={() => dispatch(setActiveChat(conv))} 
+                <div
+                  key={conv?._id}
+                  onClick={() => dispatch(setActiveChat(conv._id))}
                   className={`flex items-center gap-4 p-4 cursor-pointer transition-colors border-b border-gray-50 ${isActive ? "bg-gray-100" : "hover:bg-gray-50"}`}
                 >
                   <div className="relative shrink-0">
                     <img src={conv?.profileImage || "/default-avatar.png"} className="w-12 h-12 rounded-full object-cover border border-gray-100" alt="" />
-                    
-                    {/* লাল ব্যাজ রেন্ডারিং */}
+
                     {uCount > 0 && !isActive && (
                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] h-5 w-5 flex items-center justify-center rounded-full border-2 border-white font-bold shadow-sm">
                         {uCount > 9 ? "9+" : uCount}
@@ -138,13 +153,13 @@ const Message = () => {
                   <span className="font-bold text-gray-800">{activeChatDetails?.username || "Chat"}</span>
                 </div>
               </div>
-              
+
               <div ref={scrollRef} className="flex-1 p-4 overflow-y-auto flex flex-col gap-3 bg-[#f0f2f5]">
                 {messages.map((m, idx) => {
                   const isMe = m?.senderId === currentUser._id;
                   return (
-                    <div 
-                      key={m._id || m.tempId || idx} 
+                    <div
+                      key={m._id || m.tempId || idx}
                       className={`max-w-[75%] p-3 px-4 rounded-2xl text-[15px] shadow-sm ${isMe ? "bg-blue-600 text-white self-end rounded-tr-none" : "bg-white text-gray-800 self-start rounded-tl-none"}`}
                     >
                       {m?.text || m?.message}
@@ -155,15 +170,15 @@ const Message = () => {
 
               <div className="p-4 bg-white border-t pb-24 md:pb-4">
                 <div className="flex items-center gap-2 max-w-4xl mx-auto">
-                  <input 
-                    value={newMessage} 
-                    onChange={(e) => setNewMessage(e.target.value)} 
-                    onKeyDown={(e) => e.key === "Enter" && handleSend()} 
-                    className="flex-1 px-5 py-3 border border-gray-200 rounded-full outline-none focus:border-blue-400 bg-gray-50 transition-colors" 
-                    placeholder="Type a message..." 
+                  <input
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="flex-1 px-5 py-3 border border-gray-200 rounded-full outline-none focus:border-blue-400 bg-gray-50 transition-colors"
+                    placeholder="Type a message..."
                   />
-                  <button 
-                    onClick={handleSend} 
+                  <button
+                    onClick={handleSend}
                     className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 active:scale-90 transition-all shadow-md"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
